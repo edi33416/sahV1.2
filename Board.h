@@ -21,7 +21,7 @@ private:
 public:
 	
 	void printBitboard(BITBOARD boardToPrint);
-	
+	void printDebug();
 	//TODO PRIVATE
 
 	BITBOARD whiteBoard, blackBoard, board;

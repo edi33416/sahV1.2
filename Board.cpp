@@ -250,6 +250,25 @@ void Board::movePiece(Piece *piece, Position newPosition) {
 	updateNextMoves(piece->type, piece->color);
 }
 
+void Board::printDebug() {
+	std::cout << "#cai + pioni albi negri \n";
+	printBitboard(whitesNextStep[KNIGHTS]);
+	printBitboard(whitesNextStep[PAWNS]);
+	printBitboard(blacksNextStep[KNIGHTS]);
+	printBitboard(blacksNextStep[PAWNS]);
+
+	std::cout << "#whiteboard\n";
+	printBitboard(whiteBoard);
+
+	std::cout << "#blackboard\n";
+	printBitboard(blackBoard);
+
+	std::cout << "#board\n";
+	printBitboard(board);
+
+	std::cout << "#no more cai/pioni\n";
+}
+
 bool Board::isCheckMate() {
 	BITBOARD kingPosition = 1;
 	kingPosition = kingPosition << blackPieces[KING][0]->currentPosition;

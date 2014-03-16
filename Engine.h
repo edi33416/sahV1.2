@@ -24,6 +24,10 @@ private:
 	Command currentCommand;
 	Color color;
 	Board board;
+	bool isForced;
+	void force();
+	bool engineIsToMove;
+
 public:
 	void mainLoop();
 	void reset();
