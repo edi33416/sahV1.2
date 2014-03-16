@@ -1,13 +1,10 @@
-﻿Build started 3/16/2014 5:17:36 PM.
+﻿Build started 3/16/2014 7:27:40 PM.
      1>Project "E:\Facultate\Anul II\Semestrul2\PA\Proiect\SAH_PA1.2\SAH_PA\SAH_PA.vcxproj" on node 2 (Build target(s)).
      1>ClCompile:
-         C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\CL.exe /c /ZI /nologo /W3 /WX- /Od /Oy- /D WIN32 /D _DEBUG /D _CONSOLE /D _UNICODE /D UNICODE /Gm /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo"Debug\\" /Fd"Debug\vc120.pdb" /Gd /TP /analyze- /errorReport:prompt Board.cpp Engine.cpp Pawn.cpp SAH_PA.cpp
+         C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\CL.exe /c /ZI /nologo /W3 /WX- /Od /Oy- /D WIN32 /D _DEBUG /D _CONSOLE /D _UNICODE /D UNICODE /Gm /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo"Debug\\" /Fd"Debug\vc120.pdb" /Gd /TP /analyze- /errorReport:prompt Engine.cpp
          Engine.cpp
-         Board.cpp
-         Generating Code...
-         Skipping... (no relevant changes detected)
-         SAH_PA.cpp
-         Pawn.cpp
+     1>e:\facultate\anul ii\semestrul2\pa\proiect\sah_pa1.2\sah_pa\engine.cpp(88): warning C4101: 'oldPosition' : unreferenced local variable
+     1>e:\facultate\anul ii\semestrul2\pa\proiect\sah_pa1.2\sah_pa\engine.cpp(163): warning C4101: 'piece' : unreferenced local variable
        Link:
          C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:"E:\Facultate\Anul II\Semestrul2\PA\Proiect\SAH_PA1.2\Debug\SAH_PA.exe" /INCREMENTAL /NOLOGO kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /DEBUG /PDB:"E:\Facultate\Anul II\Semestrul2\PA\Proiect\SAH_PA1.2\Debug\SAH_PA.pdb" /SUBSYSTEM:CONSOLE /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"E:\Facultate\Anul II\Semestrul2\PA\Proiect\SAH_PA1.2\Debug\SAH_PA.lib" /MACHINE:X86 Debug\Bishop.obj
          Debug\generateBitboard.obj
@@ -26,4 +23,4 @@
 
 Build succeeded.
 
-Time Elapsed 00:00:01.12
+Time Elapsed 00:00:00.72

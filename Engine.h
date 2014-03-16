@@ -27,7 +27,13 @@ private:
 	bool isForced;
 	void force();
 	bool engineIsToMove;
+	void go();
+	void processCommand(Command &command);
+	void engineMove();
 
+	PIECE_COLOR engineColor;
+	PIECE_COLOR colorToMove;
+	int foo;
 public:
 	void mainLoop();
 	void reset();
