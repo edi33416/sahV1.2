@@ -1,0 +1,22 @@
+﻿Build started 3/16/2014 3:59:21 PM.
+     1>Project "C:\Users\mihai_000\Documents\Visual Studio 2012\Projects\SAH_PA1.2\SAH_PA\SAH_PA.vcxproj" on node 2 (Build target(s)).
+       Project file contains ToolsVersion="12.0". This toolset may be unknown or missing, in which case you may be able to resolve this by installing the appropriate version of MSBuild, or the build may have been forced to a particular ToolsVersion for policy reasons. Treating the project as if it had ToolsVersion="4.0". For more information, please see http://go.microsoft.com/fwlink/?LinkId=291333.
+     1>Link:
+         D:\Programming\VStudio\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:"C:\Users\mihai_000\Documents\Visual Studio 2012\Projects\SAH_PA1.2\Debug\SAH_PA.exe" /INCREMENTAL /NOLOGO kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /DEBUG /PDB:"C:\Users\mihai_000\Documents\Visual Studio 2012\Projects\SAH_PA1.2\Debug\SAH_PA.pdb" /SUBSYSTEM:CONSOLE /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"C:\Users\mihai_000\Documents\Visual Studio 2012\Projects\SAH_PA1.2\Debug\SAH_PA.lib" /MACHINE:X86 Debug\Bishop.obj
+         Debug\generateBitboard.obj
+         Debug\Board.obj
+         Debug\Engine.obj
+         Debug\King.obj
+         Debug\Knight.obj
+         Debug\Pawn.obj
+         Debug\Piece.obj
+         Debug\Queen.obj
+         Debug\Rook.obj
+         Debug\SAH_PA.obj
+         Debug\stdafx.obj
+         SAH_PA.vcxproj -> C:\Users\mihai_000\Documents\Visual Studio 2012\Projects\SAH_PA1.2\Debug\SAH_PA.exe
+     1>Done Building Project "C:\Users\mihai_000\Documents\Visual Studio 2012\Projects\SAH_PA1.2\SAH_PA\SAH_PA.vcxproj" (Build target(s)).
+
+Build succeeded.
+
+Time Elapsed 00:00:01.49
