@@ -1,5 +1,7 @@
 #pragma once
 
+//Queen header file
+
 #ifndef Queen_H
 #define Queen_H
 
