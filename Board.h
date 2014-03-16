@@ -24,6 +24,9 @@ public:
 	void printDebug();
 	//TODO PRIVATE
 
+	void init();
+	void erase();
+
 	BITBOARD whiteBoard, blackBoard, board;
 	// Moves for each type of piece in one step
 	// 

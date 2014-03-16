@@ -1,19 +1,40 @@
 #include "Board.h"
 
 Board::Board() {
-	Piece *p;
 
 	whitesNextStep = new BITBOARD[6]();
 	blacksNextStep = new BITBOARD[6]();
+	init();
+}
 
-	for (int i=0; i<8; i++)
-		for (int j=0; j<8; j++)
+Board::~Board() {
+}
+
+void Board::erase() {
+	int i;
+
+	for (i = 0; i < 6; i++) {
+		blackPieces[i].clear();
+		whitePieces[i].clear();
+	}
+
+	for (i = 0; i < 6; i++) {
+		whitesNextStep[i] = 0;
+		blacksNextStep[i] = 0;
+	}
+}
+
+void Board::init() {
+	Piece *p;
+
+	for (int i = 0; i<8; i++)
+		for (int j = 0; j<8; j++)
 			allPieces[i][j] = nullptr;
 
-	for (int i=0; i<8; i++) {
+	for (int i = 0; i<8; i++) {
 		p = new Pawn(i + 48, PIECE_COLOR::BLACK);
 		blackPieces[PAWNS].push_back(p);
-		allPieces[6][i] = p; 
+		allPieces[6][i] = p;
 
 		p = new Pawn(i + 8, PIECE_COLOR::WHITE);
 		whitePieces[PAWNS].push_back(p);
@@ -24,7 +45,7 @@ Board::Board() {
 	blackBoard = 0xffff000000000000ULL;
 	board = whiteBoard | blackBoard;
 
-	p = new Rook(56, PIECE_COLOR::BLACK); 
+	p = new Rook(56, PIECE_COLOR::BLACK);
 	blackPieces[ROOKS].push_back(p);
 	//allPieces[7][0] = p;
 	*(*allPieces + 56) = p;
@@ -39,7 +60,7 @@ Board::Board() {
 
 	p = new Rook(7, PIECE_COLOR::WHITE);
 	whitePieces[ROOKS].push_back(p);
-	*(*(allPieces) + 7) = p;
+	*(*(allPieces)+7) = p;
 
 	p = new Knight(57, PIECE_COLOR::BLACK);
 	blackPieces[KNIGHTS].push_back(p);
@@ -51,11 +72,11 @@ Board::Board() {
 
 	p = new Knight(1, PIECE_COLOR::WHITE);
 	whitePieces[KNIGHTS].push_back(p);
-	*(*(allPieces) + 1) = p;
+	*(*(allPieces)+1) = p;
 
 	p = new Knight(6, PIECE_COLOR::WHITE);
 	whitePieces[KNIGHTS].push_back(p);
-	*(*(allPieces) + 6) = p;
+	*(*(allPieces)+6) = p;
 
 	p = new Bishop(58, PIECE_COLOR::BLACK);
 	blackPieces[BISHOPS].push_back(p);
@@ -67,11 +88,11 @@ Board::Board() {
 
 	p = new Bishop(2, PIECE_COLOR::WHITE);
 	whitePieces[BISHOPS].push_back(p);
-	*(*(allPieces) + 2) = p;
+	*(*(allPieces)+2) = p;
 
 	p = new Bishop(5, PIECE_COLOR::WHITE);
 	whitePieces[BISHOPS].push_back(p);
-	*(*(allPieces) + 5) = p;
+	*(*(allPieces)+5) = p;
 
 	p = new Queen(60, PIECE_COLOR::BLACK);
 	blackPieces[QUEEN].push_back(p);
@@ -79,7 +100,7 @@ Board::Board() {
 
 	p = new Queen(4, PIECE_COLOR::WHITE);
 	whitePieces[QUEEN].push_back(p);
-	*(*(allPieces) + 4) = p;
+	*(*(allPieces)+4) = p;
 
 	p = new King(59, PIECE_COLOR::BLACK);
 	blackPieces[KING].push_back(p);
@@ -87,7 +108,7 @@ Board::Board() {
 
 	p = new King(3, PIECE_COLOR::WHITE);
 	whitePieces[KING].push_back(p);
-	*(*(allPieces) + 3) = p;
+	*(*(allPieces)+3) = p;
 
 
 	// Constructing BITBOARD sets for next step
@@ -100,11 +121,9 @@ Board::Board() {
 		whitesNextStep[KNIGHTS] |= whitePieces[KNIGHTS][i]->getAllMoves();
 		blacksNextStep[KNIGHTS] |= blackPieces[KNIGHTS][i]->getAllMoves();
 	}
-	
+
 }
 
-Board::~Board() {
-}
 
 bool Board::isMovable(PIECE_TYPES pieceType, PIECE_COLOR pieceColor) {
 	if (pieceColor == BLACK)

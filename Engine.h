@@ -30,14 +30,13 @@ private:
 	void go();
 	void processCommand(Command &command);
 	void engineMove();
+	void reset();
 
 	PIECE_COLOR engineColor;
 	PIECE_COLOR colorToMove;
 	int foo;
 public:
-	void mainLoop();
-	void reset();
-		
+	void mainLoop();		
 	Command computeCommnandForWinboard(const Position oldPosition, const Position newPosition);
 	void getCommand();
 	void sendCommand(Command command);

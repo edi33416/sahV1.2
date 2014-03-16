@@ -26,7 +26,11 @@ void Engine::getCommand() {
 }
 
 void Engine::reset() {
-	//int i, j;
+	board.erase();
+	board.init();
+	isForced = false;
+	engineColor = BLACK;
+	colorToMove = WHITE;
 }
 
 void Engine::processCommand(Command &command) {
@@ -85,7 +89,6 @@ void Engine::go() {
 void Engine::engineMove() {
 	Piece *piece;
 	Command command;
-	Position oldPosition;
 	Position newPosition;
 
 	if (isForced)
@@ -160,7 +163,6 @@ void Engine::engineMove() {
 
 void Engine::mainLoop() {
 	std::string token;
-	Piece *piece;
 	Command command;
 	Position oldPosition;
 	Position newPosition;
@@ -207,6 +209,11 @@ void Engine::mainLoop() {
 
 		if (currentCommand.find("force") != not_found) {
 			force();
+			continue;
+		}
+
+		if (currentCommand.find("new") != not_found) {
+			reset();
 			continue;
 		}
 
