@@ -185,30 +185,8 @@ BITBOARD Board::getPossibleMoves(Piece *piece) {
 				possibleMoves = possibleMoves & (~pawn->getForwardMoves());
 		}
 
-	/*	if (pawn->color == BLACK) {				
-			possibleMoves = ((pawn->getForwardMoves() ^ board) & (~board)) | (((pawn->getAttackMoves() ^ blackBoard) & (~blackBoard)) & whiteBoard);
-			if (pawn->currentPosition > 47 && pawn->currentPosition < 56) {
-				mask = mask << (pawn->currentPosition - 8);
-				if (mask & board)
-					possibleMoves = possibleMoves & (~pawn->getForwardMoves());
-			}
-		}
-		
-		else {
-			possibleMoves = ((pawn->getForwardMoves() ^ board) & (~board)) | (((pawn->getAttackMoves() ^ whiteBoard) & (~whiteBoard)) & blackBoard);
-			if (pawn->currentPosition > 7 && pawn->currentPosition < 16) {
-				mask = mask << (pawn->currentPosition + 8);
-				if (mask & board)
-					possibleMoves = possibleMoves & (~pawn->getForwardMoves());
-			}
-		}*/
 	}
 	else {
-		/*if (piece->color == BLACK)
-			possibleMoves = ((piece->getAllMoves() ^ blackBoard) & (~blackBoard));
-		else
-			possibleMoves = ((piece->getAllMoves() ^ whiteBoard) & (~whiteBoard));
-			*/
 		possibleMoves = ((piece->getAllMoves() ^ boardsVector[piece->color]) & (~boardsVector[piece->color]));
 	}
 	
@@ -231,26 +209,7 @@ void Board::removePiece(Position position) {
 
 		Piece *piece = *(*(allPieces) + position);
 		*(*(allPieces) + position) = nullptr;
-		/*
-		if (piece->color == PIECE_COLOR::WHITE) {
-			for (unsigned int i=0; i < whitePieces[piece->type].size(); i++) 
-				if (whitePieces[piece->type][i]->getPosition() == position) {
-					whitePieces[piece->type].erase(whitePieces[piece->type].begin() + i);
-					removeFromBitboards(whiteBoard, position);
-					break;
-				}
-			updateNextMoves(piece->type, piece->color);
-			return;
-		}
 
-		for (unsigned int i=0; i < blackPieces[piece->type].size(); i++) 
-			if (blackPieces[piece->type][i]->getPosition() == position) {
-				blackPieces[piece->type].erase(blackPieces[piece->type].begin() + i);
-				removeFromBitboards(blackBoard, position);
-				break;
-			}
-		updateNextMoves(piece->type, piece->color);
-		*/
 		for (unsigned int i=0; i < piecesVector[piece->color][piece->type].size(); i++) 
 				if (piecesVector[piece->color][piece->type][i]->getPosition() == position) {
 					piecesVector[piece->color][piece->type].erase(piecesVector[piece->color][piece->type].begin() + i);
