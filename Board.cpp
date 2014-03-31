@@ -126,12 +126,7 @@ void Board::init() {
 
 
 bool Board::isMovable(PIECE_TYPES pieceType, PIECE_COLOR pieceColor) {
-	/*if (pieceColor == BLACK)
-		return ((blacksNextStep[pieceType] > 0) ? true : false);
-	else
-		return ((whitesNextStep[pieceType] > 0) ? true : false);
-		*/
-
+	
 	return ((nextStep[pieceColor][pieceType] > 0) ? true : false);
 }
 
@@ -169,28 +164,128 @@ void Board::printBitboard(BITBOARD boardToPrint) {
 	std::cout << "\n#\n#---------\n# " << std::endl;
 }
 
+BITBOARD Board::genNegativeMoves(const Position position, const Position direction) {
+	BITBOARD mask = 1;
+	BITBOARD result = 0;
+
+	result |= mask << (position - direction);
+	return result;
+}
+
+
+
 BITBOARD Board::getPossibleMoves(Piece *piece) {
-	BITBOARD possibleMoves;
+	BITBOARD possibleMoves = 0;
+	BITBOARD empty;
+	BITBOARD mask = 1;
+	BITBOARD result;
+	BITBOARD notA, notH;
 
 	if (piece->type == PAWNS) {
-		BITBOARD mask = 1;
 
 		board = boardsVector[WHITE] | boardsVector[BLACK];
+		empty = ~board;
 		Pawn *pawn = (Pawn*)piece;
 
-		possibleMoves = ((pawn->getForwardMoves() ^ board) & (~board)) | (((pawn->getAttackMoves() ^ boardsVector[pawn->color]) & (~boardsVector[pawn->color])) & boardsVector[1 - pawn->color]);
+		possibleMoves = ((pawn->getForwardMoves() ^ board) & (empty)) | (((pawn->getAttackMoves() ^ boardsVector[pawn->color]) & (~boardsVector[pawn->color])) & boardsVector[1 - pawn->color]);
 		if (pawn->isOnStartingPosition()) {
 			mask = mask << (pawn->currentPosition + (-1) * ((-2) * pawn->color + 1) * 8);
 			if (mask & board)
 				possibleMoves = possibleMoves & (~pawn->getForwardMoves());
 		}
-
+		return possibleMoves;
 	}
-	else {
+	if (piece->type == KNIGHTS) {
 		possibleMoves = ((piece->getAllMoves() ^ boardsVector[piece->color]) & (~boardsVector[piece->color]));
+		return possibleMoves;
 	}
-	
-	return possibleMoves;
+
+	if (piece->type == ROOKS) {
+		board = boardsVector[WHITE] | boardsVector[BLACK];
+		empty = ~board;
+
+		mask = mask << piece->currentPosition;
+		possibleMoves = mask;
+		possibleMoves |= mask = (mask >> 8) & empty;
+		possibleMoves |= mask = (mask >> 8) & empty;
+		possibleMoves |= mask = (mask >> 8) & empty;
+		possibleMoves |= mask = (mask >> 8) & empty;
+		possibleMoves |= mask = (mask >> 8) & empty;
+		possibleMoves |= mask = (mask >> 8) & empty;
+		possibleMoves |= mask = (mask >> 8) & empty;
+
+		result = possibleMoves;
+		result |= ((possibleMoves >> 8) & boardsVector[1 - piece->color]);
+
+		mask = 1;
+		mask = mask << piece->currentPosition;
+
+
+		possibleMoves = mask;
+		possibleMoves |= mask = (mask << 8) & empty;
+		possibleMoves |= mask = (mask << 8) & empty;
+		possibleMoves |= mask = (mask << 8) & empty;
+		possibleMoves |= mask = (mask << 8) & empty;
+		possibleMoves |= mask = (mask << 8) & empty;
+		possibleMoves |= mask = (mask << 8) & empty;
+		possibleMoves |= mask = (mask << 8) & empty;
+
+		result |= possibleMoves;
+		result |= ((possibleMoves << 8) & boardsVector[1 - piece->color]);
+
+		mask = 1;
+		mask = mask << piece->currentPosition;
+		empty = ~board;
+		notA = 0x7f7f7f7f7f7f7f7f;
+		empty &= notA;
+
+		possibleMoves = mask;
+		possibleMoves |= mask = (mask >> 1) & empty;
+		possibleMoves |= mask = (mask >> 1) & empty;
+		possibleMoves |= mask = (mask >> 1) & empty;
+		possibleMoves |= mask = (mask >> 1) & empty;
+		possibleMoves |= mask = (mask >> 1) & empty;
+		possibleMoves |= mask = (mask >> 1) & empty;
+		possibleMoves |= mask = (mask >> 1) & empty;
+		//possibleMoves |= (possibleMoves >> 1) & empty;
+		// possibleMoves |= mask = (mask >> 1) & empty;
+		possibleMoves |= ((possibleMoves >> 1) & boardsVector[1 - piece->color]);
+		possibleMoves &= notA;
+		result |= possibleMoves;
+
+		//result |= (possibleMoves >> 1) & notH;
+		mask = 1;
+		mask = mask << piece->currentPosition;
+		empty = ~board;
+		notH = 0xfefefefefefefefe;
+		empty &= notH;
+
+		possibleMoves = mask;
+		possibleMoves |= mask = (mask << 1) & empty;
+		possibleMoves |= mask = (mask << 1) & empty;
+		possibleMoves |= mask = (mask << 1) & empty;
+		possibleMoves |= mask = (mask << 1) & empty;
+		possibleMoves |= mask = (mask << 1) & empty;
+		possibleMoves |= mask = (mask << 1) & empty;
+		possibleMoves |= mask = (mask << 1) & empty;
+		possibleMoves |= ((possibleMoves << 1) & boardsVector[1 - piece->color]);
+		possibleMoves &= notH;
+
+		// possibleMoves |= mask = (mask << 1) & empty;
+
+		result |= possibleMoves;
+
+		mask = 1;
+		result = result & (~(mask << piece->currentPosition));
+		
+		//mask = 1;
+		//result = result & (~(mask<<piece->currentPosition));
+		std::cout << "# Miscari ture\n";
+		printBitboard(result);
+		return result;
+	}
+
+	//return possibleMoves;
 }
 
 

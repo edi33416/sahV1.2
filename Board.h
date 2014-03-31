@@ -16,7 +16,8 @@ typedef BITBOARD* BITBOARD_SET;
 class Board {
 private:
 	void removeFromBitboards(BITBOARD &bitboard, Position position);
-
+	BITBOARD genNegativeMoves(const Position position, const Position direction);
+	BITBOARD genPositiveMoves(const Position position, const Position direction);
 
 public:
 	

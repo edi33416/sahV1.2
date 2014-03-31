@@ -102,12 +102,14 @@ void Engine::engineMove() {
 			return;
 		}
 
+		if (board.piecesVector[engineColor][PAWNS].size() == 0 || !board.isMovable(PAWNS, engineColor))
+			foo = 0;
 		//time for engine to move
 		
-			if ((board.piecesVector[engineColor][KNIGHTS].size()) && foo == 0 && board.isMovable(KNIGHTS, engineColor)) {
-				piece = board.piecesVector[engineColor][KNIGHTS][rand() % board.piecesVector[engineColor][KNIGHTS].size()];
+			if ((board.piecesVector[engineColor][ROOKS].size()) && foo == 0 && board.isMovable(ROOKS, engineColor)) {
+				piece = board.piecesVector[engineColor][ROOKS][rand() % board.piecesVector[engineColor][ROOKS].size()];
 				while ((newPosition = board.getPossiblePosition(piece)) == -1)
-					piece = board.piecesVector[engineColor][KNIGHTS][rand() % board.piecesVector[engineColor][KNIGHTS].size()];
+					piece = board.piecesVector[engineColor][ROOKS][rand() % board.piecesVector[engineColor][ROOKS].size()];
 
 				foo = 1;
 			}
@@ -117,20 +119,17 @@ void Engine::engineMove() {
 					piece = board.piecesVector[engineColor][PAWNS][rand() % board.piecesVector[engineColor][PAWNS].size()];
 					while ((newPosition = board.getPossiblePosition(piece)) == -1)
 						piece = board.piecesVector[engineColor][PAWNS][rand() % board.piecesVector[engineColor][PAWNS].size()];
-					foo = 0;
+
 				}
-				else {
-					sendCommand(COMMAND_RESIGN);
-					return;
-				}
+									foo = 0;
 			}
 			else {
 				sendCommand(COMMAND_RESIGN);
 				return;
 			}
-				command = computeCommnandForWinboard(piece->currentPosition, newPosition);
-				board.movePiece(piece, newPosition);
-				sendCommand(command);
+			command = computeCommnandForWinboard(piece->currentPosition, newPosition);
+			board.movePiece(piece, newPosition);
+			sendCommand(command);
 		
 		colorToMove = (colorToMove == WHITE) ? BLACK : WHITE;
 	}
