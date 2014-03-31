@@ -79,6 +79,7 @@ void Engine::force() {
 }
 
 void Engine::go() {
+	int t;
 	isForced = false;
 	engineColor = colorToMove;
 	std::cout << "#go\n";
@@ -101,19 +102,19 @@ void Engine::engineMove() {
 
 		//time for engine to move
 		if (engineColor == BLACK) {
-			if ((board.blackPieces[KNIGHTS].size()) && foo == 0 && board.isMovable(KNIGHTS, BLACK)) {
-				piece = board.blackPieces[KNIGHTS][rand() % board.blackPieces[KNIGHTS].size()];
+			if ((board.piecesVector[BLACK][KNIGHTS].size()) && foo == 0 && board.isMovable(KNIGHTS, BLACK)) {
+				piece = board.piecesVector[BLACK][KNIGHTS][rand() % board.piecesVector[BLACK][KNIGHTS].size()];
 				while ((newPosition = board.getPossiblePosition(piece)) == -1)
-					piece = board.blackPieces[KNIGHTS][rand() % board.blackPieces[KNIGHTS].size()];
+					piece = board.piecesVector[BLACK][KNIGHTS][rand() % board.piecesVector[BLACK][KNIGHTS].size()];
 
 				foo = 1;
 			}
-			else  if (board.blackPieces[PAWNS].size()) {
+			else  if (board.piecesVector[BLACK][PAWNS].size()) {
 				if (board.isMovable(PAWNS, BLACK)) {
 					std::cout << "# " << board.isMovable(PAWNS, BLACK) << "\n";
-					piece = board.blackPieces[PAWNS][rand() % board.blackPieces[PAWNS].size()];
+					piece = board.piecesVector[BLACK][PAWNS][rand() % board.piecesVector[BLACK][PAWNS].size()];
 					while ((newPosition = board.getPossiblePosition(piece)) == -1)
-						piece = board.blackPieces[PAWNS][rand() % board.blackPieces[PAWNS].size()];
+						piece = board.piecesVector[BLACK][PAWNS][rand() % board.piecesVector[BLACK][PAWNS].size()];
 					foo = 0;
 				}
 				else {
@@ -129,19 +130,19 @@ void Engine::engineMove() {
 			sendCommand(command);
 		}
 		else {
-			if ((board.whitePieces[KNIGHTS].size()) && foo == 0 && board.isMovable(KNIGHTS, WHITE)) {
-				piece = board.whitePieces[KNIGHTS][rand() % board.whitePieces[KNIGHTS].size()];
+			if ((board.piecesVector[WHITE][KNIGHTS].size()) && foo == 0 && board.isMovable(KNIGHTS, WHITE)) {
+				piece = board.piecesVector[WHITE][KNIGHTS][rand() % board.piecesVector[WHITE][KNIGHTS].size()];
 				while ((newPosition = board.getPossiblePosition(piece)) == -1)
-					piece = board.whitePieces[KNIGHTS][rand() % board.whitePieces[KNIGHTS].size()];
+					piece = board.piecesVector[WHITE][KNIGHTS][rand() % board.piecesVector[WHITE][KNIGHTS].size()];
 
 				foo = 1;
 			}
-			else  if (board.whitePieces[PAWNS].size()) {
+			else  if (board.piecesVector[WHITE][PAWNS].size()) {
 				if (board.isMovable(PAWNS, WHITE)) {
 					std::cout << "# " << board.isMovable(PAWNS, WHITE) << "\n";
-					piece = board.whitePieces[PAWNS][rand() % board.whitePieces[PAWNS].size()];
+					piece = board.piecesVector[WHITE][PAWNS][rand() % board.piecesVector[WHITE][PAWNS].size()];
 					while ((newPosition = board.getPossiblePosition(piece)) == -1)
-						piece = board.whitePieces[PAWNS][rand() % board.whitePieces[PAWNS].size()];
+						piece = board.piecesVector[WHITE][PAWNS][rand() % board.piecesVector[WHITE][PAWNS].size()];
 					foo = 0;
 				}
 				else {
@@ -157,6 +158,34 @@ void Engine::engineMove() {
 			sendCommand(command);
 
 		}
+		/*
+			if ((board.piecesVector[engineColor][KNIGHTS].size()) && foo == 0 && board.isMovable(KNIGHTS, engineColor)) {
+				piece = board.piecesVector[engineColor][KNIGHTS][rand() % board.piecesVector[engineColor][KNIGHTS].size()];
+				while ((newPosition = board.getPossiblePosition(piece)) == -1)
+					piece = board.piecesVector[engineColor][KNIGHTS][rand() % board.piecesVector[engineColor][KNIGHTS].size()];
+
+				foo = 1;
+			}
+			else  if (board.piecesVector[engineColor][PAWNS].size()) {
+				if (board.isMovable(PAWNS, engineColor)) {
+					std::cout << "# " << board.isMovable(PAWNS, engineColor) << "\n";
+					piece = board.piecesVector[engineColor][PAWNS][rand() % board.piecesVector[engineColor][PAWNS].size()];
+					while ((newPosition = board.getPossiblePosition(piece)) == -1)
+						piece = board.piecesVector[engineColor][PAWNS][rand() % board.piecesVector[engineColor][PAWNS].size()];
+					foo = 0;
+				}
+				else {
+					sendCommand(COMMAND_RESIGN);
+				}
+			}
+			else {
+				sendCommand(COMMAND_RESIGN);
+			}
+
+			command = computeCommnandForWinboard(piece->currentPosition, newPosition);
+			board.movePiece(piece, newPosition);
+			sendCommand(command);
+		*/
 		colorToMove = (colorToMove == WHITE) ? BLACK : WHITE;
 	}
 }
@@ -166,6 +195,7 @@ void Engine::mainLoop() {
 	Command command;
 	Position oldPosition;
 	Position newPosition;
+	time_t t;
 		
 	std::cout.setf(std::ios::unitbuf);
 	foo = 0;
@@ -227,10 +257,14 @@ void Engine::mainLoop() {
 			newPosition = 7 - (currentCommand[2] - 'a') + (currentCommand[3] - '1') * 8;
 			board.movePiece(*(*board.allPieces + oldPosition), newPosition);
 
-			colorToMove = (colorToMove == WHITE) ? BLACK : WHITE;
+			colorToMove = (colorToMove == BLACK) ? WHITE : BLACK;
 		}
 
-		if (colorToMove == engineColor)
+		if (colorToMove == engineColor) {
+			t = time(NULL);
 			engineMove();
+			t = time(NULL) - t;
+			std::cout<<t;
+		}
 	}
 }

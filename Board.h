@@ -27,11 +27,11 @@ public:
 	void init();
 	void erase();
 
-	BITBOARD whiteBoard, blackBoard, board;
+	BITBOARD board, boardsVector[2];
 	// Moves for each type of piece in one step
 	// 
-	BITBOARD_SET whitesNextStep, blacksNextStep;
-	PIECE_SET whitePieces[6], blackPieces[6];
+	BITBOARD_SET nextStep[2];
+	PIECE_SET piecesVector[2][6];
 	Piece *allPieces[8][8];
 
 	Command moveKnight();

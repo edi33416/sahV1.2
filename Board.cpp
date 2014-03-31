@@ -2,8 +2,8 @@
 
 Board::Board() {
 
-	whitesNextStep = new BITBOARD[6]();
-	blacksNextStep = new BITBOARD[6]();
+	nextStep[WHITE] = new BITBOARD[6]();
+	nextStep[BLACK] = new BITBOARD[6]();
 	init();
 }
 
@@ -14,13 +14,13 @@ void Board::erase() {
 	int i;
 
 	for (i = 0; i < 6; i++) {
-		blackPieces[i].clear();
-		whitePieces[i].clear();
+		piecesVector[WHITE][i].clear();
+		piecesVector[BLACK][i].clear();
 	}
 
 	for (i = 0; i < 6; i++) {
-		whitesNextStep[i] = 0;
-		blacksNextStep[i] = 0;
+		nextStep[WHITE][i] = 0;
+		nextStep[BLACK][i] = 0;
 	}
 }
 
@@ -33,103 +33,106 @@ void Board::init() {
 
 	for (int i = 0; i<8; i++) {
 		p = new Pawn(i + 48, PIECE_COLOR::BLACK);
-		blackPieces[PAWNS].push_back(p);
+		piecesVector[BLACK][PAWNS].push_back(p);
 		allPieces[6][i] = p;
 
 		p = new Pawn(i + 8, PIECE_COLOR::WHITE);
-		whitePieces[PAWNS].push_back(p);
+		piecesVector[WHITE][PAWNS].push_back(p);
 		allPieces[1][i] = p;
 	}
 
-	whiteBoard = 0xffffULL;
-	blackBoard = 0xffff000000000000ULL;
-	board = whiteBoard | blackBoard;
+	boardsVector[WHITE] = 0xffffULL;
+	boardsVector[BLACK] = 0xffff000000000000ULL;
+	board = boardsVector[WHITE] | boardsVector[BLACK];
 
 	p = new Rook(56, PIECE_COLOR::BLACK);
-	blackPieces[ROOKS].push_back(p);
+	piecesVector[BLACK][ROOKS].push_back(p);
 	//allPieces[7][0] = p;
 	*(*allPieces + 56) = p;
 
 	p = new Rook(63, PIECE_COLOR::BLACK);
-	blackPieces[ROOKS].push_back(p);
+	piecesVector[BLACK][ROOKS].push_back(p);
 	allPieces[7][7] = p;
 
 	p = new Rook(0, PIECE_COLOR::WHITE);
-	whitePieces[ROOKS].push_back(p);
+	piecesVector[WHITE][ROOKS].push_back(p);
 	*(*(allPieces)) = p;
 
 	p = new Rook(7, PIECE_COLOR::WHITE);
-	whitePieces[ROOKS].push_back(p);
+	piecesVector[WHITE][ROOKS].push_back(p);
 	*(*(allPieces)+7) = p;
 
 	p = new Knight(57, PIECE_COLOR::BLACK);
-	blackPieces[KNIGHTS].push_back(p);
+	piecesVector[BLACK][KNIGHTS].push_back(p);
 	allPieces[7][1] = p;
 
 	p = new Knight(62, PIECE_COLOR::BLACK);
-	blackPieces[KNIGHTS].push_back(p);
+	piecesVector[BLACK][KNIGHTS].push_back(p);
 	allPieces[7][6] = p;
 
 	p = new Knight(1, PIECE_COLOR::WHITE);
-	whitePieces[KNIGHTS].push_back(p);
+	piecesVector[WHITE][KNIGHTS].push_back(p);
 	*(*(allPieces)+1) = p;
 
 	p = new Knight(6, PIECE_COLOR::WHITE);
-	whitePieces[KNIGHTS].push_back(p);
+	piecesVector[WHITE][KNIGHTS].push_back(p);
 	*(*(allPieces)+6) = p;
 
 	p = new Bishop(58, PIECE_COLOR::BLACK);
-	blackPieces[BISHOPS].push_back(p);
+	piecesVector[BLACK][BISHOPS].push_back(p);
 	allPieces[7][2] = p;
 
 	p = new Bishop(61, PIECE_COLOR::BLACK);
-	blackPieces[BISHOPS].push_back(p);
+	piecesVector[BLACK][BISHOPS].push_back(p);
 	allPieces[7][5] = p;
 
 	p = new Bishop(2, PIECE_COLOR::WHITE);
-	whitePieces[BISHOPS].push_back(p);
+	piecesVector[WHITE][BISHOPS].push_back(p);
 	*(*(allPieces)+2) = p;
 
 	p = new Bishop(5, PIECE_COLOR::WHITE);
-	whitePieces[BISHOPS].push_back(p);
+	piecesVector[WHITE][BISHOPS].push_back(p);
 	*(*(allPieces)+5) = p;
 
 	p = new Queen(60, PIECE_COLOR::BLACK);
-	blackPieces[QUEEN].push_back(p);
+	piecesVector[BLACK][QUEEN].push_back(p);
 	allPieces[7][4] = p;
 
 	p = new Queen(4, PIECE_COLOR::WHITE);
-	whitePieces[QUEEN].push_back(p);
+	piecesVector[WHITE][QUEEN].push_back(p);
 	*(*(allPieces)+4) = p;
 
 	p = new King(59, PIECE_COLOR::BLACK);
-	blackPieces[KING].push_back(p);
+	piecesVector[BLACK][KING].push_back(p);
 	allPieces[7][3] = p;
 
 	p = new King(3, PIECE_COLOR::WHITE);
-	whitePieces[KING].push_back(p);
+	piecesVector[WHITE][KING].push_back(p);
 	*(*(allPieces)+3) = p;
 
 
 	// Constructing BITBOARD sets for next step
 	for (int i = 0; i < 8; i++) {
-		whitesNextStep[PAWNS] |= ((Pawn*)whitePieces[PAWNS][i])->getForwardMoves();
-		blacksNextStep[PAWNS] |= ((Pawn*)blackPieces[PAWNS][i])->getForwardMoves();
+		nextStep[WHITE][PAWNS] |= ((Pawn*)piecesVector[WHITE][PAWNS][i])->getForwardMoves();
+		nextStep[BLACK][PAWNS] |= ((Pawn*)piecesVector[BLACK][PAWNS][i])->getForwardMoves();
 	}
 
 	for (int i = 0; i < 2; i++) {
-		whitesNextStep[KNIGHTS] |= whitePieces[KNIGHTS][i]->getAllMoves();
-		blacksNextStep[KNIGHTS] |= blackPieces[KNIGHTS][i]->getAllMoves();
+		nextStep[WHITE][KNIGHTS] |= piecesVector[WHITE][KNIGHTS][i]->getAllMoves();
+		nextStep[BLACK][KNIGHTS] |= piecesVector[BLACK][KNIGHTS][i]->getAllMoves();
 	}
 
 }
 
 
 bool Board::isMovable(PIECE_TYPES pieceType, PIECE_COLOR pieceColor) {
-	if (pieceColor == BLACK)
+	/*if (pieceColor == BLACK)
 		return ((blacksNextStep[pieceType] > 0) ? true : false);
 	else
 		return ((whitesNextStep[pieceType] > 0) ? true : false);
+		*/
+
+	return ((nextStep[pieceColor][pieceType] > 0) ? true : false);
 }
 
 //DE MODIFICAT
@@ -137,12 +140,12 @@ void Board::updateNextMoves(PIECE_TYPES pieceType, PIECE_COLOR pieceColor) {
 	int j;
 
 	for (j=0; j<6; j++) {
-		whitesNextStep[j] = 0;
-		for (unsigned int i = 0; i < whitePieces[j].size(); i++)
-			whitesNextStep[j] |= getPossibleMoves(whitePieces[j][i]);
-		blacksNextStep[j] = 0;
-		for (unsigned int i = 0; i < blackPieces[j].size(); i++)
-			blacksNextStep[j] |= getPossibleMoves(blackPieces[j][i]);
+		nextStep[WHITE][j] = 0;
+		for (unsigned int i = 0; i < piecesVector[WHITE][j].size(); i++)
+			nextStep[WHITE][j] |= getPossibleMoves(piecesVector[WHITE][j][i]);
+		nextStep[BLACK][j] = 0;
+		for (unsigned int i = 0; i < piecesVector[BLACK][j].size(); i++)
+			nextStep[BLACK][j] |= getPossibleMoves(piecesVector[BLACK][j][i]);
 	}
 }
 
@@ -172,9 +175,17 @@ BITBOARD Board::getPossibleMoves(Piece *piece) {
 	if (piece->type == PAWNS) {
 		BITBOARD mask = 1;
 
-		board = whiteBoard | blackBoard;
+		board = boardsVector[WHITE] | boardsVector[BLACK];
 		Pawn *pawn = (Pawn*)piece;
-		if (pawn->color == BLACK) {				
+
+		possibleMoves = ((pawn->getForwardMoves() ^ board) & (~board)) | (((pawn->getAttackMoves() ^ boardsVector[pawn->color]) & (~boardsVector[pawn->color])) & boardsVector[1 - pawn->color]);
+		if (pawn->isOnStartingPosition()) {
+			mask = mask << (pawn->currentPosition + (-1) * ((-2) * pawn->color + 1) * 8);
+			if (mask & board)
+				possibleMoves = possibleMoves & (~pawn->getForwardMoves());
+		}
+
+	/*	if (pawn->color == BLACK) {				
 			possibleMoves = ((pawn->getForwardMoves() ^ board) & (~board)) | (((pawn->getAttackMoves() ^ blackBoard) & (~blackBoard)) & whiteBoard);
 			if (pawn->currentPosition > 47 && pawn->currentPosition < 56) {
 				mask = mask << (pawn->currentPosition - 8);
@@ -182,7 +193,7 @@ BITBOARD Board::getPossibleMoves(Piece *piece) {
 					possibleMoves = possibleMoves & (~pawn->getForwardMoves());
 			}
 		}
-
+		
 		else {
 			possibleMoves = ((pawn->getForwardMoves() ^ board) & (~board)) | (((pawn->getAttackMoves() ^ whiteBoard) & (~whiteBoard)) & blackBoard);
 			if (pawn->currentPosition > 7 && pawn->currentPosition < 16) {
@@ -190,14 +201,17 @@ BITBOARD Board::getPossibleMoves(Piece *piece) {
 				if (mask & board)
 					possibleMoves = possibleMoves & (~pawn->getForwardMoves());
 			}
-		}
+		}*/
 	}
 	else {
-		if (piece->color == BLACK)
+		/*if (piece->color == BLACK)
 			possibleMoves = ((piece->getAllMoves() ^ blackBoard) & (~blackBoard));
 		else
 			possibleMoves = ((piece->getAllMoves() ^ whiteBoard) & (~whiteBoard));
+			*/
+		possibleMoves = ((piece->getAllMoves() ^ boardsVector[piece->color]) & (~boardsVector[piece->color]));
 	}
+	
 	return possibleMoves;
 }
 
@@ -217,6 +231,7 @@ void Board::removePiece(Position position) {
 
 		Piece *piece = *(*(allPieces) + position);
 		*(*(allPieces) + position) = nullptr;
+		/*
 		if (piece->color == PIECE_COLOR::WHITE) {
 			for (unsigned int i=0; i < whitePieces[piece->type].size(); i++) 
 				if (whitePieces[piece->type][i]->getPosition() == position) {
@@ -235,6 +250,14 @@ void Board::removePiece(Position position) {
 				break;
 			}
 		updateNextMoves(piece->type, piece->color);
+		*/
+		for (unsigned int i=0; i < piecesVector[piece->color][piece->type].size(); i++) 
+				if (piecesVector[piece->color][piece->type][i]->getPosition() == position) {
+					piecesVector[piece->color][piece->type].erase(piecesVector[piece->color][piece->type].begin() + i);
+					removeFromBitboards(boardsVector[piece->color], position);
+					break;
+				}
+			updateNextMoves(piece->type, piece->color);
 }
 
 void Board::removeFromBitboards(BITBOARD &bitboard, Position position) {
@@ -257,13 +280,9 @@ void Board::movePiece(Piece *piece, Position newPosition) {
 	*(*allPieces + oldPosition) = nullptr;
 	*(*allPieces + newPosition) = piece;
 
+	boardsVector[piece->color] = (boardsVector[piece->color] | (mask << newPosition)) & (~(mask << oldPosition));
 
-	if (piece->color == BLACK)
-		blackBoard = (blackBoard | (mask << newPosition)) & (~(mask << oldPosition));
-	else 
-		whiteBoard = (whiteBoard | (mask << newPosition)) & (~(mask << oldPosition));
-
-	board = whiteBoard | blackBoard;
+	board = boardsVector[WHITE] | boardsVector[BLACK];
 
 	piece->move(newPosition);
 	updateNextMoves(piece->type, piece->color);
@@ -271,16 +290,16 @@ void Board::movePiece(Piece *piece, Position newPosition) {
 
 void Board::printDebug() {
 	std::cout << "#cai + pioni albi negri \n";
-	printBitboard(whitesNextStep[KNIGHTS]);
-	printBitboard(whitesNextStep[PAWNS]);
-	printBitboard(blacksNextStep[KNIGHTS]);
-	printBitboard(blacksNextStep[PAWNS]);
+	printBitboard(nextStep[WHITE][KNIGHTS]);
+	printBitboard(nextStep[WHITE][PAWNS]);
+	printBitboard(nextStep[BLACK][KNIGHTS]);
+	printBitboard(nextStep[BLACK][PAWNS]);
 
 	std::cout << "#whiteboard\n";
-	printBitboard(whiteBoard);
+	printBitboard(boardsVector[WHITE]);
 
 	std::cout << "#blackboard\n";
-	printBitboard(blackBoard);
+	printBitboard(boardsVector[BLACK]);
 
 	std::cout << "#board\n";
 	printBitboard(board);
@@ -290,20 +309,20 @@ void Board::printDebug() {
 
 bool Board::isCheckMate() {
 	BITBOARD kingPosition = 1;
-	kingPosition = kingPosition << blackPieces[KING][0]->currentPosition;
-	kingPosition = kingPosition & (whitesNextStep[PAWNS] | whitesNextStep[KNIGHTS]);
+	kingPosition = kingPosition << piecesVector[BLACK][KING][0]->currentPosition;
+	kingPosition = kingPosition & (nextStep[WHITE][PAWNS] | nextStep[WHITE][KNIGHTS]);
 
 	std::cout<<"#cai + pioni albi negri \n";
-	printBitboard(whitesNextStep[KNIGHTS]);
-	printBitboard(whitesNextStep[PAWNS]);
-	printBitboard(blacksNextStep[KNIGHTS]);
-	printBitboard(blacksNextStep[PAWNS]);
+	printBitboard(nextStep[WHITE][KNIGHTS]);
+	printBitboard(nextStep[WHITE][PAWNS]);
+	printBitboard(nextStep[BLACK][KNIGHTS]);
+	printBitboard(nextStep[BLACK][PAWNS]);
 
 	std::cout<<"#whiteboard\n";
-	printBitboard(whiteBoard);
+	printBitboard(boardsVector[WHITE]);
 
 	std::cout<<"#blackboard\n";
-	printBitboard(blackBoard);
+	printBitboard(boardsVector[BLACK]);
 
 	std::cout<<"#board\n";
 	printBitboard(board);

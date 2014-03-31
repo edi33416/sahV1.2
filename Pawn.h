@@ -18,6 +18,7 @@ public:
 	BITBOARD getForwardMoves();
 	BITBOARD getAttackMoves();
 	void printtmp();
+	bool isOnStartingPosition();
 };
 
 #endif

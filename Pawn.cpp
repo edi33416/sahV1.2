@@ -34,9 +34,15 @@ BITBOARD Pawn::getAttackMoves() {
 
 void Pawn::printtmp() {
 	Board b;
+
 	std::cout << "#pion 3\n";
 	b.printBitboard(whiteForwardMoves[7]);
 }
+
+bool Pawn::isOnStartingPosition() {
+	return ((currentPosition < (64 - (40 * this->color + 8))) && (currentPosition > (64 - (40 * this->color + 17))));
+}
+
 /*int main() {
 	Pawn p(8 ,BLACK);
 	p.printtmp();
