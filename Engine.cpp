@@ -106,10 +106,10 @@ void Engine::engineMove() {
 			foo = 0;
 		//time for engine to move
 		
-			if ((board.piecesVector[engineColor][ROOKS].size()) && foo == 0 && board.isMovable(ROOKS, engineColor)) {
-				piece = board.piecesVector[engineColor][ROOKS][rand() % board.piecesVector[engineColor][ROOKS].size()];
+			if ((board.piecesVector[engineColor][QUEEN].size()) && foo == 0 && board.isMovable(QUEEN, engineColor)) {
+				piece = board.piecesVector[engineColor][QUEEN][rand() % board.piecesVector[engineColor][QUEEN].size()];
 				while ((newPosition = board.getPossiblePosition(piece)) == -1)
-					piece = board.piecesVector[engineColor][ROOKS][rand() % board.piecesVector[engineColor][ROOKS].size()];
+					piece = board.piecesVector[engineColor][QUEEN][rand() % board.piecesVector[engineColor][QUEEN].size()];
 
 				foo = 1;
 			}
