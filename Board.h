@@ -20,6 +20,8 @@ private:
 	BITBOARD genPositiveMoves(const Position position, const Position direction);
 
 public:
+	std::vector<Piece*> tempRemovedPieces;
+
 	
 	void printBitboard(BITBOARD boardToPrint);
 	void printDebug();
@@ -39,10 +41,14 @@ public:
 	bool isMovable(PIECE_TYPES pieceType, PIECE_COLOR pieceColor);
 	bool isCheckMate();
 	void movePiece(Piece *piece, Position newPosition);
-	Position getPossiblePosition(Piece *piece);
+	void tempMovePiece(Piece *piece, Position newPosition); 
+
+	//MODFICAT
+	std::vector<Position> getPossiblePosition(Piece *piece);
 	void removePiece(Position position);
 	void updateNextMoves(PIECE_TYPES pieceType, PIECE_COLOR pieceColor);
 	BITBOARD getPossibleMoves(Piece *piece);
+	void undoMove(Piece* piece, Position oldPosition);
 	Board();
 	~Board();
 };

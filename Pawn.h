@@ -20,7 +20,6 @@ public:
 	BITBOARD getAllMoves();
 	BITBOARD getForwardMoves();
 	BITBOARD getAttackMoves();
-	void printtmp();
 	bool isOnStartingPosition();
 };
 

@@ -145,6 +145,7 @@ void Board::updateNextMoves(PIECE_TYPES pieceType, PIECE_COLOR pieceColor) {
 }
 
 void Board::printBitboard(BITBOARD boardToPrint) {
+
 	BITBOARD mask = 1;
 	BITBOARD newm;
 
@@ -162,6 +163,7 @@ void Board::printBitboard(BITBOARD boardToPrint) {
 		mask = mask >> 1;
 	}
 	std::cout << "\n#\n#---------\n# " << std::endl;
+
 }
 
 BITBOARD Board::genNegativeMoves(const Position position, const Position direction) {
@@ -171,6 +173,7 @@ BITBOARD Board::genNegativeMoves(const Position position, const Position directi
 	result |= mask << (position - direction);
 	return result;
 }
+
 
 
 
@@ -279,8 +282,8 @@ BITBOARD Board::getPossibleMoves(Piece *piece) {
 		
 		//mask = 1;
 		//result = result & (~(mask<<piece->currentPosition));
-		std::cout << "# Miscari ture\n";
-		printBitboard(result);
+	//	std::cout << "# Miscari ture\n";
+		//printBitboard(result);
 		return result;
 	}
 
@@ -365,8 +368,8 @@ BITBOARD Board::getPossibleMoves(Piece *piece) {
 		mask = 1;
 		result = result & (~(mask << piece->currentPosition));
 
-		std::cout<<"# NEBUNI\n";
-		printBitboard(result);
+		//std::cout<<"# NEBUNI\n";
+		//printBitboard(result);
 		return result;
 	}
 
@@ -528,20 +531,27 @@ BITBOARD Board::getPossibleMoves(Piece *piece) {
 }
 
 
-Position Board::getPossiblePosition(Piece *piece) {
+std::vector<Position> Board::getPossiblePosition(Piece *piece) {
 	char mask = 1;
 	BITBOARD possibleMoves = getPossibleMoves(piece);
-	for (int i=0; i<64; i++) {
-		if ((mask & possibleMoves) == 1)
-			return i;
+	std::vector<Position> v;
+
+	possibleMoves = possibleMoves & (~(mask << piece->currentPosition));
+
+	for (Position i=0; i<64; i++) {
+		if ((mask & possibleMoves) == 1) {
+			//return i;
+			v.push_back(i);
+		}
 		possibleMoves = possibleMoves >> 1;
 	}
-	return -1;
+	return v;
 }
 
 void Board::removePiece(Position position) {
-
 		Piece *piece = *(*(allPieces) + position);
+
+		tempRemovedPieces.push_back(piece);
 		*(*(allPieces) + position) = nullptr;
 
 		for (unsigned int i=0; i < piecesVector[piece->color][piece->type].size(); i++) 
@@ -561,6 +571,18 @@ void Board::removeFromBitboards(BITBOARD &bitboard, Position position) {
 	board = board & mask;
 }
 
+void Board::undoMove(Piece *piece, Position oldPosition) {
+
+	movePiece(piece, oldPosition);
+	if (!tempRemovedPieces.empty()) {
+
+		piece = tempRemovedPieces.back();
+		movePiece(piece, piece->currentPosition);
+		piecesVector[piece->color][piece->type].push_back(piece);
+		tempRemovedPieces.pop_back();
+	}
+}
+
 void Board::movePiece(Piece *piece, Position newPosition) {
 	
 	BITBOARD mask = 1;
@@ -573,7 +595,11 @@ void Board::movePiece(Piece *piece, Position newPosition) {
 	*(*allPieces + oldPosition) = nullptr;
 	*(*allPieces + newPosition) = piece;
 
-	boardsVector[piece->color] = (boardsVector[piece->color] | (mask << newPosition)) & (~(mask << oldPosition));
+	//DE MODIFICAT
+	if (oldPosition != newPosition)
+		boardsVector[piece->color] = (boardsVector[piece->color] | (mask << newPosition)) & (~(mask << oldPosition));
+	else 
+		boardsVector[piece->color] = (boardsVector[piece->color] | (mask << newPosition));
 
 	board = boardsVector[WHITE] | boardsVector[BLACK];
 
@@ -582,7 +608,7 @@ void Board::movePiece(Piece *piece, Position newPosition) {
 }
 
 void Board::printDebug() {
-	std::cout << "#cai + pioni albi negri \n";
+	/*std::cout << "#cai + pioni albi negri \n";
 	printBitboard(nextStep[WHITE][KNIGHTS]);
 	printBitboard(nextStep[WHITE][PAWNS]);
 	printBitboard(nextStep[BLACK][KNIGHTS]);
@@ -598,13 +624,15 @@ void Board::printDebug() {
 	printBitboard(board);
 
 	std::cout << "#no more cai/pioni\n";
+	*/
 }
 
 bool Board::isCheckMate() {
 	BITBOARD kingPosition = 1;
 	kingPosition = kingPosition << piecesVector[BLACK][KING][0]->currentPosition;
-	kingPosition = kingPosition & (nextStep[WHITE][PAWNS] | nextStep[WHITE][KNIGHTS]);
+	kingPosition = kingPosition & (nextStep[WHITE][PAWNS] | nextStep[WHITE][KNIGHTS] | nextStep[WHITE][ROOKS] | nextStep[WHITE][BISHOPS] | nextStep[WHITE][QUEEN]);
 
+	/*
 	std::cout<<"#cai + pioni albi negri \n";
 	printBitboard(nextStep[WHITE][KNIGHTS]);
 	printBitboard(nextStep[WHITE][PAWNS]);
@@ -621,6 +649,7 @@ bool Board::isCheckMate() {
 	printBitboard(board);
 
 	std::cout << "#no more cai/pioni\n";
+	*/
 	if (kingPosition == 0)
 		return false;
 	return true;
