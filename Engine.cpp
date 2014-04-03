@@ -132,12 +132,18 @@ void Engine::engineMove() {
 		newPosition = possiblePositions[index][rand() % possiblePositions[index].size()];
 		command = computeCommnandForWinboard(piece->currentPosition, newPosition);
 		board.movePiece(piece, newPosition);
+		// Promoting pawn
+		if (newPosition < 8 && newPosition >= 0 && piece->type == PAWNS) {
+			//command.insert(9, "q");
+			board.pawnPromotion(piece);
+		}
 
 		sendCommand(command);
 
 		
 		colorToMove = (colorToMove == WHITE) ? BLACK : WHITE;
 	}
+
 }
 
 void Engine::mainLoop() {

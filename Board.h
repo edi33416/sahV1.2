@@ -42,6 +42,7 @@ public:
 	bool isCheckMate();
 	void movePiece(Piece *piece, Position newPosition);
 	void tempMovePiece(Piece *piece, Position newPosition); 
+	void pawnPromotion(Piece *piece);
 
 	//MODFICAT
 	std::vector<Position> getPossiblePosition(Piece *piece);

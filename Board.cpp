@@ -549,18 +549,18 @@ std::vector<Position> Board::getPossiblePosition(Piece *piece) {
 }
 
 void Board::removePiece(Position position) {
-		Piece *piece = *(*(allPieces) + position);
+	Piece *piece = *(*(allPieces) + position);
 
-		tempRemovedPieces.push_back(piece);
-		*(*(allPieces) + position) = nullptr;
-
-		for (unsigned int i=0; i < piecesVector[piece->color][piece->type].size(); i++) 
-				if (piecesVector[piece->color][piece->type][i]->getPosition() == position) {
-					piecesVector[piece->color][piece->type].erase(piecesVector[piece->color][piece->type].begin() + i);
-					removeFromBitboards(boardsVector[piece->color], position);
-					break;
-				}
-			updateNextMoves(piece->type, piece->color);
+	tempRemovedPieces.push_back(piece);
+	*(*(allPieces) + position) = nullptr;
+	
+	for (unsigned int i=0; i < piecesVector[piece->color][piece->type].size(); i++) 
+			if (piecesVector[piece->color][piece->type][i]->getPosition() == position) {
+				piecesVector[piece->color][piece->type].erase(piecesVector[piece->color][piece->type].begin() + i);
+				removeFromBitboards(boardsVector[piece->color], position);
+				break;
+			}
+	updateNextMoves(piece->type, piece->color);
 }
 
 void Board::removeFromBitboards(BITBOARD &bitboard, Position position) {
@@ -605,6 +605,17 @@ void Board::movePiece(Piece *piece, Position newPosition) {
 
 	piece->move(newPosition);
 	updateNextMoves(piece->type, piece->color);
+}
+
+void Board::pawnPromotion(Piece *piece) {
+	Position currentPosition = piece->currentPosition;
+	removePiece(currentPosition);
+	tempRemovedPieces.pop_back();
+
+	Piece *queen = new Queen(currentPosition, piece->color);
+	delete piece;
+	piecesVector[queen->color][QUEEN].push_back(queen);
+	movePiece(queen, currentPosition);
 }
 
 void Board::printDebug() {
