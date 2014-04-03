@@ -7,7 +7,6 @@
 #include "Knight.h"
 
 std::vector<BITBOARD> generateKnightBitboard() {
-	//if (pieceType inscanceOf Knight)
 	BITBOARD board = 0, mask = 1;
 	std::vector<BITBOARD> allMoves;
 	
@@ -54,25 +53,40 @@ std::vector<BITBOARD> generateKnightBitboard() {
 				board = board | (mask << (i - 6));
 		allMoves.push_back(board);
 	}
+	return allMoves;
+}
 
-		//BITBOARD mask=1;
-//		BITBOARD newm;
+std::vector<BITBOARD> generateKingMoves() {
+	BITBOARD board = 0, mask = 1;
+	std::vector<BITBOARD> allMoves;
+	for (int i = 0; i < 64; i++) {
+		if (i / 8 > 0) {
+			if (i % 8 > 0)
+				board |= mask << (i-9);
+			if (i % 8 < 7)
+				board |= mask << (i-7);
 
-		/*newm = allMoves[0];
-		mask = mask<<63;
+			board |= mask << (i-8);
+		}
 
-		std::cout<<board<<std::endl;
-		for (int i=0; i<64; i++) {
-			if (i % 8 == 0)
-				std::cout<<std::endl;
-			if ((mask & newm) > 0)
-				std::cout<<1<<" ";
-			else
-				std::cout<<0<<" ";
+		if (i / 8 < 7) {
+			if (i % 8 > 0)
+				board |= mask << (i+7);
+			if (i % 8 < 7)
+				board |= mask << (i+9);
 
-			mask=mask>>1;
-		}*/
-		return allMoves;
+			board |= mask << (i+8);
+		}
+
+		if (i % 8 > 0)
+			board |= mask << (i-1);
+ 
+		if (i%8 < 7)
+			board |= mask << (i+1);
+		allMoves.push_back(board);
+		board = 0;
+	}
+	return allMoves;
 }
 
 std::vector<BITBOARD> generateBlackPawnForwardBitboard() {
@@ -165,31 +179,22 @@ void printBitboard(BITBOARD boardToPrint, std::ofstream &f) {
 		f << "\n\n---------\n" << std::endl;
 }
 
+/*
+int main() {
 
-/*int main() {
+	std::ofstream f("miscariRege.txt");
+	std::ofstream debug("matriceDebugRege.txt");
+	std::vector<BITBOARD> allMoves;
 
-	std::ofstream test("test.txt");
-	std::ofstream f("miscariAtacPionNegru.txt");
-	std::ofstream debug("matricePioni.txt");
-	std::ofstream g("miscariForPionNegru.txt");
-	BITBOARD b;
-
-	std::vector<BITBOARD> allForwardMoves;
-	std::vector<BITBOARD> allAttackMoves;
-
-	allForwardMoves = generateBlackPawnForwardBitboard();
-	allAttackMoves = generateBlackPawnAttackBitboard();
+	allMoves = generateKingMoves();
 	//printBitboard(allForwardMoves[0], test);
 
 	for (int i=0; i<64; i++) {
-		printBitboard(allForwardMoves[i], debug);
-		printBitboard(allAttackMoves[i], debug);
-		g<<"0x"<<std::hex<<allForwardMoves[i]<<"ULL, ";
-		f<<"0x"<<std::hex<<allAttackMoves[i]<<"ULL, ";
+		printBitboard(allMoves[i], debug);
+		f<<"0x"<<std::hex<<allMoves[i]<<"ULL, ";
 	}
 
 	f.close();
-	g.close();
 	debug.close();
 	getchar();
 	return 0;

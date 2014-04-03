@@ -79,7 +79,6 @@ void Engine::force() {
 }
 
 void Engine::go() {
-	int t;
 	isForced = false;
 	engineColor = colorToMove;
 	std::cout << "#go\n";
@@ -106,10 +105,10 @@ void Engine::engineMove() {
 			foo = 0;
 		//time for engine to move
 		
-			if ((board.piecesVector[engineColor][QUEEN].size()) && foo == 0 && board.isMovable(QUEEN, engineColor)) {
-				piece = board.piecesVector[engineColor][QUEEN][rand() % board.piecesVector[engineColor][QUEEN].size()];
+			if ((board.piecesVector[engineColor][KING].size()) && foo == 0 && board.isMovable(KING, engineColor)) {
+				piece = board.piecesVector[engineColor][KING][rand() % board.piecesVector[engineColor][KING].size()];
 				while ((newPosition = board.getPossiblePosition(piece)) == -1)
-					piece = board.piecesVector[engineColor][QUEEN][rand() % board.piecesVector[engineColor][QUEEN].size()];
+					piece = board.piecesVector[engineColor][KING][rand() % board.piecesVector[engineColor][KING].size()];
 
 				foo = 1;
 			}
@@ -156,7 +155,6 @@ void Engine::mainLoop() {
 		getCommand();
 					
 		if (currentCommand.find("xboard") != not_found) {
-//			init();
 			continue;
 		}
 

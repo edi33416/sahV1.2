@@ -8,8 +8,9 @@
 
 class King : public Piece {
 private:
-	const static BITBOARD allMoves;
 public:
+	const static BITBOARD movesMatrix[];
+	BITBOARD getAllMoves();
 	King();
 	King(Position position, PIECE_COLOR pieceColor);
 };

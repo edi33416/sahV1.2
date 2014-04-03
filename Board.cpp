@@ -195,7 +195,7 @@ BITBOARD Board::getPossibleMoves(Piece *piece) {
 		}
 		return possibleMoves;
 	}
-	if (piece->type == KNIGHTS) {
+	if (piece->type == KNIGHTS || piece->type == KING) {
 		possibleMoves = ((piece->getAllMoves() ^ boardsVector[piece->color]) & (~boardsVector[piece->color]));
 		return possibleMoves;
 	}
@@ -525,8 +525,6 @@ BITBOARD Board::getPossibleMoves(Piece *piece) {
 		result = result & (~(mask << piece->currentPosition));
 		return result;
 	}
-
-	//return possibleMoves;
 }
 
 
