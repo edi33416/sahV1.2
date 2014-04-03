@@ -90,6 +90,7 @@ void Engine::engineMove() {
 	Command command;
 	Position newPosition = -1, oldPosition;
 	PIECE_TYPES pieceType, randomPiece;
+	Position rookPosition = 0;
 
 	std::vector<Piece*> moveablePieces;
 	std::vector<std::vector<Position>> possiblePositions;
@@ -103,20 +104,48 @@ void Engine::engineMove() {
 			piece = board.piecesVector[engineColor][i][j];
 			v = board.getPossiblePosition(piece);
 			for (int k=0; k<v.size(); k++) {
+				//verific pentru tura
 				oldPosition = piece->currentPosition;
+				if (piece->type == KING && (abs(v[k]- oldPosition) == 2)) { 
+					if (v[k] == 61) {
+						board.movePiece(*(*board.allPieces + 63), 60);
+						rookPosition = 63;
+					}
+					else if (v[k] == 57) {
+						rookPosition = 56;
+						board.movePiece(*(*board.allPieces + 56), 58);
+					}
+				}
 				board.movePiece(piece, v[k]);
-				if (board.isCheckMate()) {
+
+				if (board.isCheckMate()) {  // || (rookPosition > 0 && piece->type == KING && abs((piece->currentPosition - oldPosition)) != 2)) {
 					v.erase(v.begin() + k);
 					k--;
 				}
+				board.undoMove(piece, oldPosition);
+				if (piece->type == KING)
+					((King*) piece)->wasMoved = false;
+				//daca am facut rocada
+				if (rookPosition == 63) {
+					board.undoMove(*(*board.allPieces + 60), rookPosition);
+					((Rook*) (*(*board.allPieces + rookPosition)))->wasMoved = false;
+				} else if (rookPosition == 56) {
+					board.undoMove(*(*board.allPieces + 58), rookPosition);
+					((Rook*) (*(*board.allPieces + rookPosition)))->wasMoved = false;
+				}
 
-			board.undoMove(piece, oldPosition);
 			}
 
 			if (!v.empty()) {
-				moveablePieces.push_back(piece);
-				possiblePositions.push_back(v);
+				//schimba restrictie 
+				if (piece->type == KING)
+					std::cout << "# " << ((King*) piece)->wasMoved << std::endl;
+				if ((piece->type != KING && piece->type != ROOKS) || rookPosition) { 
+					moveablePieces.push_back(piece);
+					possiblePositions.push_back(v);
+				}
 			}
+			rookPosition = 0;
 		}
 	}
 
@@ -131,10 +160,11 @@ void Engine::engineMove() {
 		piece = moveablePieces[(index = rand() % moveablePieces.size())];
 		newPosition = possiblePositions[index][rand() % possiblePositions[index].size()];
 		command = computeCommnandForWinboard(piece->currentPosition, newPosition);
+		
 		board.movePiece(piece, newPosition);
 		// Promoting pawn
+		
 		if (newPosition < 8 && newPosition >= 0 && piece->type == PAWNS) {
-			//command.insert(9, "q");
 			board.pawnPromotion(piece);
 		}
 

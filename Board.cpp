@@ -198,10 +198,35 @@ BITBOARD Board::getPossibleMoves(Piece *piece) {
 		}
 		return possibleMoves;
 	}
-	if (piece->type == KNIGHTS || piece->type == KING) {
+	if (piece->type == KNIGHTS) {
 		possibleMoves = ((piece->getAllMoves() ^ boardsVector[piece->color]) & (~boardsVector[piece->color]));
 		return possibleMoves;
 	}
+
+	if (piece->type == KING) {
+		possibleMoves = ((piece->getAllMoves() ^ boardsVector[piece->color]) & (~boardsVector[piece->color]));
+		//for castling
+		King *king = (King*) piece;
+		if (king->wasMoved == false && isCheckMate() == false) {
+			for (int i = 0; i < piecesVector[piece->color][ROOKS].size(); i++) {
+				Rook *rook = (Rook*) piecesVector[piece->color][ROOKS][i];
+				if (rook->wasMoved == false) {
+					if (rook->currentPosition == 63) {
+						BITBOARD mask = ((BITBOARD) 112) << 56;
+						if ((mask & boardsVector[piece->color]) == 0) 
+							possibleMoves |= ((BITBOARD) 1 << 61);
+					} else if (rook->currentPosition == 56) {
+						BITBOARD mask = (BITBOARD) 6 << 56;
+						if ((mask & boardsVector[piece->color]) == 0)
+							possibleMoves |= ((BITBOARD) 1 << 57);
+					}
+				}
+			}
+		}
+
+		return possibleMoves;
+	}
+
 
 	if (piece->type == ROOKS) {
 		empty = ~board;
@@ -602,9 +627,12 @@ void Board::movePiece(Piece *piece, Position newPosition) {
 		boardsVector[piece->color] = (boardsVector[piece->color] | (mask << newPosition));
 
 	board = boardsVector[WHITE] | boardsVector[BLACK];
-
 	piece->move(newPosition);
 	updateNextMoves(piece->type, piece->color);
+	if (piece->type == ROOKS)
+		((Rook*) piece)->wasMoved = true;
+	else if (piece->type == KING)
+		((King*) piece)->wasMoved = true;
 }
 
 void Board::pawnPromotion(Piece *piece) {

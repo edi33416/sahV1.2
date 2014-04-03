@@ -9,6 +9,7 @@
 class King : public Piece {
 private:
 public:
+	bool wasMoved;
 	const static BITBOARD movesMatrix[];
 	BITBOARD getAllMoves();
 	King();
