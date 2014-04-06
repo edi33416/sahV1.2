@@ -89,7 +89,6 @@ void Engine::engineMove() {
 	Piece *piece;
 	Command command;
 	Position newPosition = -1, oldPosition;
-	PIECE_TYPES pieceType, randomPiece;
 
 	std::vector<Piece*> moveablePieces;
 	std::vector<std::vector<Position>> possiblePositions;
@@ -98,11 +97,11 @@ void Engine::engineMove() {
 
 	board.tempRemovedPieces.clear();
 	srand(time(NULL));
-	for (int i=0; i<6; i++) {
-		for (int j=0; j<board.piecesVector[engineColor][i].size(); j++) {
+	for (int i = 0; i < 6; i++) {
+		for (unsigned int j = 0; j < board.piecesVector[engineColor][i].size(); j++) {
 			piece = board.piecesVector[engineColor][i][j];
 			v = board.getPossiblePosition(piece);
-			for (int k=0; k<v.size(); k++) {
+			for (unsigned int k = 0; k < v.size(); k++) {
 				oldPosition = piece->currentPosition;
 				board.movePiece(piece, v[k]);
 				if (board.isCheckMate()) {
@@ -139,11 +138,9 @@ void Engine::engineMove() {
 		}
 
 		sendCommand(command);
-
 		
 		colorToMove = (colorToMove == WHITE) ? BLACK : WHITE;
 	}
-
 }
 
 void Engine::mainLoop() {
@@ -151,7 +148,6 @@ void Engine::mainLoop() {
 	Command command;
 	Position oldPosition;
 	Position newPosition;
-	time_t t;
 		
 	std::cout.setf(std::ios::unitbuf);
 	foo = 0;
