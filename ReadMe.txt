@@ -9,7 +9,7 @@ Membrii:
 Detalii implementare: 
 
     #   Reprezentarea tablei interne se face cu ajutorul BITBOARD-urilor
-    #   Pionii si caii efectueaza miscari legale pana la epuizarea acestora, sau pana cand se realizeaza "SAH"
+    #   Toate piesele de joc efectueaza miscari legale pana la epuizarea acestora, sau pana cand se realizeaza "SAH MAT"
     #   Implementarea tuturor comenzilor necesare etapei
 
 Timp alocat: 40h
