@@ -3,9 +3,9 @@
 #ifndef Rook_H
 #define Rook_H
 
-#include "Piece.h"
+#include "CastlingPiece.h"
 
-class Rook : public Piece {
+class Rook : public CastlingPiece {
 private:
 	const static BITBOARD moves;
 

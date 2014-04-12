@@ -9,6 +9,7 @@
 #include <fstream>
 //#include "Engine.h"
 #include "utils.h"
+#include "Move.h"
 
 typedef std::vector<Piece*> PIECE_SET;
 typedef BITBOARD* BITBOARD_SET;
@@ -40,16 +41,17 @@ public:
 	Command moveKnight();
 	bool isMovable(PIECE_TYPES pieceType, PIECE_COLOR pieceColor);
 	bool isCheckMate();
-	void movePiece(Piece *piece, Position newPosition);
+	Piece* movePiece(Piece *piece, Position newPosition);
 	void tempMovePiece(Piece *piece, Position newPosition); 
 	void pawnPromotion(Piece *piece);
 
 	//MODFICAT
 	std::vector<Position> getPossiblePosition(Piece *piece);
-	void removePiece(Position position);
+	void removePiece(Piece *piece);
 	void updateNextMoves(PIECE_TYPES pieceType, PIECE_COLOR pieceColor);
 	BITBOARD getPossibleMoves(Piece *piece);
-	void undoMove(Piece* piece, Position oldPosition);
+	void undoMove(Piece *piece, Position oldPosition);
+	void putOnBoard(Piece *piece);
 	Board();
 	~Board();
 };

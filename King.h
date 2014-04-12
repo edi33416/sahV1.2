@@ -4,9 +4,9 @@
 #define King_H
 
 #include "utils.h"
-#include "Piece.h"
+#include "CastlingPiece.h"
 
-class King : public Piece {
+class King : public CastlingPiece {
 private:
 public:
 	const static BITBOARD movesMatrix[];

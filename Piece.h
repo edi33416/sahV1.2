@@ -24,9 +24,10 @@ protected:
 public:
 	Position currentPosition;
 	Piece (Position position, PIECE_COLOR pieceColor);
-	void move(Position newPosition);
+	virtual void move(Position newPosition);
+	virtual void undoLastMove(Position oldPosition);
 	Position getPosition();
-	virtual BITBOARD getAllMoves(){return 0;}
+	virtual BITBOARD getAllMoves() { return 0; }
 
 
 	PIECE_TYPES type;

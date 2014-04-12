@@ -9,3 +9,7 @@ Piece::Piece(Position position, PIECE_COLOR pieceColor) : currentPosition(positi
 Position Piece::getPosition() {
 	return currentPosition;
 }
+
+void Piece::undoLastMove(Position oldPosition) {
+	currentPosition = oldPosition;
+}

@@ -2,6 +2,7 @@
 
 Board::Board() {
 
+	Move::board = this;
 	nextStep[WHITE] = new BITBOARD[6]();
 	nextStep[BLACK] = new BITBOARD[6]();
 	init();
@@ -548,16 +549,16 @@ std::vector<Position> Board::getPossiblePosition(Piece *piece) {
 	return v;
 }
 
-void Board::removePiece(Position position) {
-	Piece *piece = *(*(allPieces) + position);
+void Board::removePiece(Piece *piece) {
+	//Piece *piece = *(*(allPieces) + position);
 
 	tempRemovedPieces.push_back(piece);
-	*(*(allPieces) + position) = nullptr;
+	*(*(allPieces) + piece->currentPosition) = nullptr;
 	
 	for (unsigned int i=0; i < piecesVector[piece->color][piece->type].size(); i++) 
-			if (piecesVector[piece->color][piece->type][i]->getPosition() == position) {
+			if (piecesVector[piece->color][piece->type][i]->getPosition() == piece->currentPosition) {
 				piecesVector[piece->color][piece->type].erase(piecesVector[piece->color][piece->type].begin() + i);
-				removeFromBitboards(boardsVector[piece->color], position);
+				removeFromBitboards(boardsVector[piece->color], piece->currentPosition);
 				break;
 			}
 	updateNextMoves(piece->type, piece->color);
@@ -583,33 +584,41 @@ void Board::undoMove(Piece *piece, Position oldPosition) {
 	}
 }
 
-void Board::movePiece(Piece *piece, Position newPosition) {
-	
-	BITBOARD mask = 1;
-	Position oldPosition;
-	oldPosition = piece->getPosition();
-	
-	if ((mask << newPosition) & board)
-		removePiece(newPosition);
+void Board::putOnBoard(Piece *piece) {
 
-	*(*allPieces + oldPosition) = nullptr;
-	*(*allPieces + newPosition) = piece;
+	boardsVector[piece->color] = (boardsVector[piece->color] | (1ULL << piece->currentPosition));
+	*(*allPieces + piece->currentPosition) = piece;
+	board = boardsVector[WHITE] | boardsVector[BLACK];
+	updateNextMoves(piece->type, piece->color);
+}
+
+Piece* Board::movePiece(Piece *piece, Position newPosition) {
+	Piece *removedPiece = nullptr;
+	BITBOARD mask = 1;
+	
+	*(*allPieces + piece->currentPosition) = nullptr;
+	boardsVector[piece->color] = (boardsVector[piece->color] & (~(mask << piece->currentPosition)));
+
+	if ((mask << newPosition) & board) {
+		removedPiece = (*(*allPieces + newPosition));
+		removePiece(removedPiece);
+	}
+	piece->move(newPosition);
+	putOnBoard(piece);
 
 	//DE MODIFICAT
+	/*
 	if (oldPosition != newPosition)
 		boardsVector[piece->color] = (boardsVector[piece->color] | (mask << newPosition)) & (~(mask << oldPosition));
 	else 
 		boardsVector[piece->color] = (boardsVector[piece->color] | (mask << newPosition));
-
-	board = boardsVector[WHITE] | boardsVector[BLACK];
-
-	piece->move(newPosition);
-	updateNextMoves(piece->type, piece->color);
+		*/
+	return removedPiece;
 }
 
 void Board::pawnPromotion(Piece *piece) {
 	Position currentPosition = piece->currentPosition;
-	removePiece(currentPosition);
+	removePiece(piece);
 	tempRemovedPieces.pop_back();
 
 	Piece *queen = new Queen(currentPosition, piece->color);
