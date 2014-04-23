@@ -686,6 +686,8 @@ int Board::evaluate(PIECE_COLOR playerColor) {
 	for (int i = 0; i < 6; i++) {
 		s += piecesVector[playerColor][i].size() * i;
 	}
+
+	return s;
 }
 
 std::pair<Position, int> Board::negamax(PIECE_COLOR playerColor, int depth) {
