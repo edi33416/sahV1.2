@@ -16,9 +16,12 @@ typedef BITBOARD* BITBOARD_SET;
 
 class Board {
 private:
+	static const int DEPTH;
 	void removeFromBitboards(BITBOARD &bitboard, Position position);
 	BITBOARD genNegativeMoves(const Position position, const Position direction);
 	BITBOARD genPositiveMoves(const Position position, const Position direction);
+	std::pair<Position, int> negamax(PIECE_COLOR playerColor, int depth);
+	int evaluate(PIECE_COLOR playerColor);
 
 public:
 	std::vector<Piece*> tempRemovedPieces;
@@ -32,10 +35,13 @@ public:
 	void erase();
 
 	BITBOARD board, boardsVector[2];
+
 	// Moves for each type of piece in one step
-	// 
 	BITBOARD_SET nextStep[2];
+
 	PIECE_SET piecesVector[2][6];
+
+	// A matrix of pointers to all the chess pieces
 	Piece *allPieces[8][8];
 
 	Command moveKnight();

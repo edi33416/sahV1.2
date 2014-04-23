@@ -1,5 +1,7 @@
 #include "Board.h"
 
+const int Board::DEPTH = 4;
+
 Board::Board() {
 
 	Move::board = this;
@@ -555,12 +557,13 @@ void Board::removePiece(Piece *piece) {
 	tempRemovedPieces.push_back(piece);
 	*(*(allPieces) + piece->currentPosition) = nullptr;
 	
-	for (unsigned int i=0; i < piecesVector[piece->color][piece->type].size(); i++) 
-			if (piecesVector[piece->color][piece->type][i]->getPosition() == piece->currentPosition) {
-				piecesVector[piece->color][piece->type].erase(piecesVector[piece->color][piece->type].begin() + i);
-				removeFromBitboards(boardsVector[piece->color], piece->currentPosition);
-				break;
-			}
+	for (unsigned int i = 0; i < piecesVector[piece->color][piece->type].size(); i++) {
+		if (piecesVector[piece->color][piece->type][i]->getPosition() == piece->currentPosition) {
+			piecesVector[piece->color][piece->type].erase(piecesVector[piece->color][piece->type].begin() + i);
+			removeFromBitboards(boardsVector[piece->color], piece->currentPosition);
+			break;
+		}
+	}
 	updateNextMoves(piece->type, piece->color);
 }
 
@@ -650,7 +653,9 @@ void Board::printDebug() {
 bool Board::isCheckMate() {
 	BITBOARD kingPosition = 1;
 	kingPosition = kingPosition << piecesVector[BLACK][KING][0]->currentPosition;
-	kingPosition = kingPosition & (nextStep[WHITE][PAWNS] | nextStep[WHITE][KNIGHTS] | nextStep[WHITE][ROOKS] | nextStep[WHITE][BISHOPS] | nextStep[WHITE][QUEEN]);
+	kingPosition &= (nextStep[WHITE][PAWNS] | nextStep[WHITE][KNIGHTS] |
+					 nextStep[WHITE][ROOKS] | nextStep[WHITE][BISHOPS] |
+					 nextStep[WHITE][QUEEN] | nextStep[WHITE][KING]);
 
 	/*
 	std::cout<<"#cai + pioni albi negri \n";
@@ -673,4 +678,49 @@ bool Board::isCheckMate() {
 	if (kingPosition == 0)
 		return false;
 	return true;
+}
+
+int Board::evaluate(PIECE_COLOR playerColor) {
+	int s = 0;
+
+	for (int i = 0; i < 6; i++) {
+		s += piecesVector[playerColor][i].size() * i;
+	}
+}
+
+std::pair<Position, int> Board::negamax(PIECE_COLOR playerColor, int depth) {
+	if (depth == 0){
+		return std::pair<Position, int>(0, evaluate(playerColor));
+	}
+
+	std::pair<Position, int> bestMove (0, INT_MIN);
+	for (int i = 0; i < 6; i++) {
+		for (unsigned int j = 0; j < piecesVector[playerColor][i].size(); j++) {
+
+			std::vector<Position> moves = getPossiblePosition(piecesVector[playerColor][i][j]);
+
+			for (unsigned int k = 0; k < moves.size(); k++) {
+
+				Position oldPosition = piecesVector[playerColor][i][j]->currentPosition;
+				movePiece(piecesVector[playerColor][i][j], moves[k]);
+
+				if (isCheckMate()) {
+					undoMove(piecesVector[playerColor][i][j], oldPosition);
+					continue;
+				}
+
+				std::pair<Position, int> currentMove = negamax(playerColor, depth - 1);
+				currentMove.second = -currentMove.second;
+
+				if (currentMove.second > bestMove.second) {
+					bestMove.second = currentMove.second;
+					bestMove.first = moves[k];
+				}
+
+				undoMove(piecesVector[playerColor][i][j], oldPosition);
+			}
+		}
+	}
+
+	return bestMove;
 }
