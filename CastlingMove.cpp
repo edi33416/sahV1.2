@@ -5,11 +5,14 @@ CastlingMove::CastlingMove(King *k, Rook *r) : king(k), rook(r) {
 		castlingDirection = RIGHT;
 	else
 		castlingDirection = LEFT;
+
+	oldPosition = king->currentPosition;
 }
 
 void CastlingMove::apply() {
 	board->movePiece(king, king->currentPosition + castlingDirection * CASTLING_DISTANCE);
 	board->movePiece(rook, king->currentPosition + opposite_direction(castlingDirection));
+	newPosition = king->currentPosition;
 }
 
 void CastlingMove::undo() {

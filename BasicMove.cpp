@@ -15,4 +15,6 @@ void BasicMove::undo() {
 	}
 }
 
-BasicMove::BasicMove(Piece *p1, Position newPosition) : piece1(p1), newPosition(newPosition) {}
+BasicMove::BasicMove(Piece *p1, Position newPosition) : piece1(p1) {
+	this->newPosition = newPosition;
+}

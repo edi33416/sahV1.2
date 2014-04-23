@@ -100,7 +100,7 @@ void Engine::engineMove() {
 	for (int i = 0; i < 6; i++) {
 		for (unsigned int j = 0; j < board.piecesVector[engineColor][i].size(); j++) {
 			piece = board.piecesVector[engineColor][i][j];
-			v = board.getPossibleMoves(piece);
+			v = board.getPossiblePosition(piece);
 			for (unsigned int k = 0; k < v.size(); k++) {
 				v[k]->apply();
 				if (board.isCheckMate()) {
@@ -128,13 +128,16 @@ void Engine::engineMove() {
 		}
 		piece = moveablePieces[(index = rand() % moveablePieces.size())];
 		move = possibleMoves[index][rand() % possibleMoves[index].size()];
-		command = computeCommnandForWinboard(piece->currentPosition, move);
-		board.movePiece(piece, newPosition);
+		move->apply();
+		command = computeCommnandForWinboard(move->oldPosition, move->newPosition);
+		//board.movePiece(piece, newPosition);
 		// Promoting pawn
+		/*
 		if (newPosition < 8 && newPosition >= 0 && piece->type == PAWNS) {
 			//command.insert(9, "q");
 			board.pawnPromotion(piece);
 		}
+		*/
 
 		sendCommand(command);
 		

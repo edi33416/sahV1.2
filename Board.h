@@ -10,11 +10,13 @@
 //#include "Engine.h"
 #include "utils.h"
 #include "Move.h"
+#include "IBoard.h"
+#include "BasicMove.h"
+#include "CastlingMove.h"
 
-typedef std::vector<Piece*> PIECE_SET;
 typedef BITBOARD* BITBOARD_SET;
 
-class Board {
+class Board : public IBoard {
 private:
 	void removeFromBitboards(BITBOARD &bitboard, Position position);
 	BITBOARD genNegativeMoves(const Position position, const Position direction);
@@ -35,7 +37,6 @@ public:
 	// Moves for each type of piece in one step
 	// 
 	BITBOARD_SET nextStep[2];
-	PIECE_SET piecesVector[2][6];
 	Piece *allPieces[8][8];
 
 	Command moveKnight();
@@ -47,10 +48,10 @@ public:
 
 	//MODFICAT
 	inline bool pathClearForCastl(Rook *rook);
-	//std::vector<Position> getPossiblePosition(Piece *piece);
+	std::vector<Move*> getPossiblePosition(Piece *piece);
 	void removePiece(Piece *piece);
 	void updateNextMoves(PIECE_TYPES pieceType, PIECE_COLOR pieceColor);
-	std::vector<Move*> getPossibleMoves(Piece *piece);
+	BITBOARD getPossibleMoves(Piece *piece);
 	void undoMove(Piece *piece, Position oldPosition);
 	void putOnBoard(Piece *piece);
 	Board();
