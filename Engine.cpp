@@ -88,11 +88,11 @@ void Engine::go() {
 void Engine::engineMove() {
 	Piece *piece;
 	Command command;
-	Position newPosition = -1, oldPosition;
+	Move *move;
 
 	std::vector<Piece*> moveablePieces;
-	std::vector<std::vector<Position>> possiblePositions;
-	std::vector<Position> v;
+	std::vector<std::vector<Move*>> possibleMoves;
+	std::vector<Move*> v;
 	int index;
 
 	board.tempRemovedPieces.clear();
@@ -100,21 +100,20 @@ void Engine::engineMove() {
 	for (int i = 0; i < 6; i++) {
 		for (unsigned int j = 0; j < board.piecesVector[engineColor][i].size(); j++) {
 			piece = board.piecesVector[engineColor][i][j];
-			v = board.getPossiblePosition(piece);
+			v = board.getPossibleMoves(piece);
 			for (unsigned int k = 0; k < v.size(); k++) {
-				oldPosition = piece->currentPosition;
-				board.movePiece(piece, v[k]);
+				v[k]->apply();
 				if (board.isCheckMate()) {
 					v.erase(v.begin() + k);
 					k--;
 				}
 
-			board.undoMove(piece, oldPosition);
+			v[k]->undo();
 			}
 
 			if (!v.empty()) {
 				moveablePieces.push_back(piece);
-				possiblePositions.push_back(v);
+				possibleMoves.push_back(v);
 			}
 		}
 	}
@@ -128,8 +127,8 @@ void Engine::engineMove() {
 			return;
 		}
 		piece = moveablePieces[(index = rand() % moveablePieces.size())];
-		newPosition = possiblePositions[index][rand() % possiblePositions[index].size()];
-		command = computeCommnandForWinboard(piece->currentPosition, newPosition);
+		move = possibleMoves[index][rand() % possibleMoves[index].size()];
+		command = computeCommnandForWinboard(piece->currentPosition, move);
 		board.movePiece(piece, newPosition);
 		// Promoting pawn
 		if (newPosition < 8 && newPosition >= 0 && piece->type == PAWNS) {

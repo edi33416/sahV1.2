@@ -46,10 +46,11 @@ public:
 	void pawnPromotion(Piece *piece);
 
 	//MODFICAT
-	std::vector<Position> getPossiblePosition(Piece *piece);
+	inline bool pathClearForCastl(Rook *rook);
+	//std::vector<Position> getPossiblePosition(Piece *piece);
 	void removePiece(Piece *piece);
 	void updateNextMoves(PIECE_TYPES pieceType, PIECE_COLOR pieceColor);
-	BITBOARD getPossibleMoves(Piece *piece);
+	std::vector<Move*> getPossibleMoves(Piece *piece);
 	void undoMove(Piece *piece, Position oldPosition);
 	void putOnBoard(Piece *piece);
 	Board();
