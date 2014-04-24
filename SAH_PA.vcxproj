@@ -79,17 +79,13 @@
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="BasicMove.h" />
     <ClInclude Include="Bishop.h" />
     <ClInclude Include="Bitboard.h" />
     <ClInclude Include="Board.h" />
-    <ClInclude Include="CastlingMove.h" />
     <ClInclude Include="CastlingPiece.h" />
     <ClInclude Include="Engine.h" />
-    <ClInclude Include="IBoard.h" />
     <ClInclude Include="King.h" />
     <ClInclude Include="Knight.h" />
-    <ClInclude Include="Move.h" />
     <ClInclude Include="Pawn.h" />
     <ClInclude Include="Piece.h" />
     <ClInclude Include="Pieces.h" />
@@ -100,17 +96,13 @@
     <ClInclude Include="utils.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="BasicMove.cpp" />
     <ClCompile Include="Bishop.cpp" />
-    <ClCompile Include="CastlingMove.cpp" />
     <ClCompile Include="CastlingPiece.cpp" />
     <ClCompile Include="generateBitboard.cpp" />
     <ClCompile Include="Board.cpp" />
     <ClCompile Include="Engine.cpp" />
-    <ClCompile Include="IBoard.cpp" />
     <ClCompile Include="King.cpp" />
     <ClCompile Include="Knight.cpp" />
-    <ClCompile Include="Move.cpp" />
     <ClCompile Include="Pawn.cpp" />
     <ClCompile Include="Piece.cpp" />
     <ClCompile Include="Queen.cpp" />

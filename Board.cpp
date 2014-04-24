@@ -177,12 +177,12 @@ BITBOARD Board::genNegativeMoves(const Position position, const Position directi
 
 
 bool Board::pathClearForCastl(Rook *rook) {
-	Piece *king = piecesVector[rook->color][rook->type][0];
+	Piece *king = piecesVector[rook->color][KING][0];
 
 	if (king->currentPosition < rook->currentPosition)
-		return (((1ULL << rook->currentPosition) - (1ULL << (king->currentPosition + 1))) | board) == 0;
+		return (((1ULL << rook->currentPosition) - (1ULL << (king->currentPosition + 1))) & (board & (255ULL << ((king->currentPosition >> 3) << 3)))) == 0;
 	else
-		return (((1ULL << (king->currentPosition)) - (1ULL << (rook->currentPosition + 1))) | board) == 0;
+		return (((1ULL << (king->currentPosition)) - (1ULL << (rook->currentPosition + 1))) & (board & (255ULL << ((king->currentPosition >> 3) << 3)))) == 0;
 }
 
 
@@ -568,9 +568,7 @@ BITBOARD Board::getPossibleMoves(Piece *piece) {
 	*/
 }
 
-
-
-std::vector<Move*> Board::getPossiblePosition(Piece *piece) {
+std::vector<Board::Move*> Board::getPossiblePosition(Piece *piece) {
 	char mask = 1;
 	BITBOARD possibleMoves = getPossibleMoves(piece);
 	std::vector<Move*> v;
@@ -588,9 +586,12 @@ std::vector<Move*> Board::getPossiblePosition(Piece *piece) {
 		if (((King*)piece)->canCastle() && !isCheckMate()) {
 			for (int i = 0; i < piecesVector[piece->color][ROOKS].size(); i++) {
 				if (((Rook*)piecesVector[piece->color][ROOKS][i])->canCastle()) {
-					if (pathClearForCastl((Rook*)piecesVector[piece->color][ROOKS][i]))
+					if (pathClearForCastl((Rook*)piecesVector[piece->color][ROOKS][i])) {
 						//!!!
+						std::cout << "#Can castle\n";
+						canCastle = true;
 						v.push_back(new CastlingMove((King*)piece, (Rook*)piecesVector[piece->color][ROOKS][i]));
+					}
 				}
 			}
 		}
@@ -598,6 +599,48 @@ std::vector<Move*> Board::getPossiblePosition(Piece *piece) {
 	return v;
 }
 
+//BasicMove
+Board::BasicMove::BasicMove(Piece *p1, Position newPosition) : piece1(p1) {
+	this->newPosition = newPosition;
+	isCastling = false;
+}
+
+void Board::BasicMove::apply() {
+	oldPosition = piece1->currentPosition;
+	piece2 = board->movePiece(piece1, newPosition);
+}
+
+void Board::BasicMove::undo() {
+	board->movePiece(piece1, oldPosition);
+	if (piece2 != nullptr) {
+		board->piecesVector[piece2->color][piece2->type].push_back(piece2);
+		board->putOnBoard(piece2);
+	}
+}
+//end BasicMove
+
+//CastlingMove
+Board::CastlingMove::CastlingMove(King *k, Rook *r) : king(k), rook(r) {
+	if (k->currentPosition - r->currentPosition > 0)
+		castlingDirection = RIGHT;
+	else
+		castlingDirection = LEFT;
+
+	oldPosition = king->currentPosition;
+	isCastling = true;
+}
+
+void Board::CastlingMove::apply() {
+	board->movePiece(king, king->currentPosition + castlingDirection * CASTLING_DISTANCE);
+	board->movePiece(rook, king->currentPosition + opposite_direction(castlingDirection));
+	newPosition = king->currentPosition;
+}
+
+void Board::CastlingMove::undo() {
+	board->movePiece(rook, ROOK_ORIGINAL_POSITION);
+	board->movePiece(king, king->currentPosition + CASTLING_DISTANCE * opposite_direction(castlingDirection));
+}
+//end CastlingMove
 
 void Board::removePiece(Piece *piece) {
 	//Piece *piece = *(*(allPieces) + position);
@@ -725,3 +768,5 @@ bool Board::isCheckMate() {
 		return false;
 	return true;
 }
+
+Board* Board::Move::board = 0;

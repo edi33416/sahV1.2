@@ -1,3 +1,3 @@
 #include "Move.h"
 
-Move::Move() {}
+Board::Move::Move() {}
