@@ -605,12 +605,22 @@ Board::BasicMove::BasicMove(Piece *p1, Position newPosition) : piece1(p1) {
 	isCastling = false;
 }
 
+bool Board::BasicMove::isCastlingPiece() {
+	return (piece1->type == ROOKS || piece1->type == KING);
+}
+
 void Board::BasicMove::apply() {
+	if (isCastlingPiece())
+		((CastlingPiece*)piece1)->moveCount++;
+
 	oldPosition = piece1->currentPosition;
 	piece2 = board->movePiece(piece1, newPosition);
 }
 
 void Board::BasicMove::undo() {
+	if (isCastlingPiece())
+		((CastlingPiece*)piece1)->moveCount--;
+
 	board->movePiece(piece1, oldPosition);
 	if (piece2 != nullptr) {
 		board->piecesVector[piece2->color][piece2->type].push_back(piece2);
@@ -621,7 +631,7 @@ void Board::BasicMove::undo() {
 
 //CastlingMove
 Board::CastlingMove::CastlingMove(King *k, Rook *r) : king(k), rook(r) {
-	if (k->currentPosition - r->currentPosition > 0)
+	if (k->currentPosition > r->currentPosition)
 		castlingDirection = RIGHT;
 	else
 		castlingDirection = LEFT;
@@ -634,11 +644,15 @@ void Board::CastlingMove::apply() {
 	board->movePiece(king, king->currentPosition + castlingDirection * CASTLING_DISTANCE);
 	board->movePiece(rook, king->currentPosition + opposite_direction(castlingDirection));
 	newPosition = king->currentPosition;
+	king->moveCount++;
+	rook->moveCount++;
 }
 
 void Board::CastlingMove::undo() {
 	board->movePiece(rook, ROOK_ORIGINAL_POSITION);
 	board->movePiece(king, king->currentPosition + CASTLING_DISTANCE * opposite_direction(castlingDirection));
+	king->moveCount--;
+	rook->moveCount--;
 }
 //end CastlingMove
 

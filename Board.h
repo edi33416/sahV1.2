@@ -43,6 +43,7 @@ public:
 
 	class BasicMove : public Move {
 	private:
+		inline bool isCastlingPiece();
 	public:
 		Piece *piece1, *piece2;
 		BasicMove(Piece *p1, Position newPosition);

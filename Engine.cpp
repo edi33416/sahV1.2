@@ -119,10 +119,10 @@ void Engine::engineMove() {
 					}
 				}
 				move->undo();
-				if (!v.empty()) {
-					moveablePieces.push_back(piece);
-					possibleMoves.push_back(v);
-				}
+			}
+			if (!v.empty()) {
+				moveablePieces.push_back(piece);
+				possibleMoves.push_back(v);
 			}
 		}
 	}
@@ -135,8 +135,16 @@ void Engine::engineMove() {
 			sendCommand("resign");
 			return;
 		}
-		piece = moveablePieces[(index = (rand() % moveablePieces.size()))];
-		move = possibleMoves[index][rand() % possibleMoves[index].size()];
+		if (board.canCastle) {
+			int i = 0;
+			while (moveablePieces[i]->type != KING)
+				i++;
+			move = possibleMoves[i][0];
+		}
+		else {
+			piece = moveablePieces[(index = (rand() % moveablePieces.size()))];
+			move = possibleMoves[index][rand() % possibleMoves[index].size()];
+		}
 		move->apply();
 		command = computeCommnandForWinboard(move->oldPosition, move->newPosition);
 		//board.movePiece(piece, newPosition);

@@ -4,10 +4,10 @@
 
 class CastlingPiece : public Piece {
 private:
-	unsigned int moveCount;
 public:
+	unsigned int moveCount;
+
 	CastlingPiece(Position, PIECE_COLOR color);
-	void move(Position newPosition);
 	void undoLastMove(Position oldPosition);
 	bool canCastle();
 };
