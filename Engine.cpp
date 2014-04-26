@@ -107,7 +107,7 @@ std::pair<Board::Move*, int> Engine::negamax(PIECE_COLOR playerColor, int depth)
 					continue;
 				}
 
-				std::pair<Board::Move*, int> currentMove = negamax(playerColor, depth - 1);
+				std::pair<Board::Move*, int> currentMove = negamax(((playerColor == WHITE) ? BLACK : WHITE), depth - 1);
 				currentMove.second = -currentMove.second;
 
 				if (currentMove.second > bestMove.second) {
