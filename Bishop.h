@@ -11,6 +11,7 @@ private:
 
 public:
 	Bishop(Position position, PIECE_COLOR pieceColor);
+	Bishop();
 };
 
 #endif

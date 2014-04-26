@@ -29,6 +29,8 @@ private:
 	BITBOARD genNegativeMoves(const Position position, const Position direction);
 	BITBOARD genPositiveMoves(const Position position, const Position direction);
 
+	inline Piece* createPiece(PIECE_TYPES type, Piece *oldPiece);
+
 public:
 	bool canCastle;
 	class Move {
@@ -63,10 +65,17 @@ public:
 		void undo();
 	};
 
-public:
-	std::vector<Piece*> tempRemovedPieces;
+	class PawnPromotion : public Move {
+	public:
+		Piece *piece, *newPiece;
+		PIECE_TYPES newPieceType;
+		PawnPromotion(Piece *_piece, Position newPosition, PIECE_TYPES _newPieceType);
+		void apply();
+		void undo();
+	};
 
-	
+public:
+
 	void printBitboard(BITBOARD boardToPrint);
 	void printDebug();
 	//TODO PRIVATE
@@ -94,7 +103,6 @@ public:
 	void removePiece(Piece *piece);
 	void updateNextMoves(PIECE_TYPES pieceType, PIECE_COLOR pieceColor);
 	BITBOARD getPossibleMoves(Piece *piece);
-	void undoMove(Piece *piece, Position oldPosition);
 	void putOnBoard(Piece *piece);
 	Board();
 	~Board();

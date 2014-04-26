@@ -578,6 +578,7 @@ std::vector<Board::Move*> Board::getPossiblePosition(Piece *piece) {
 	for (Position i=0; i<64; i++) {
 		if ((mask & possibleMoves) == 1) {
 			//return i;
+			//if (piece->type == PAWNS && piece->
 			v.push_back(new BasicMove(piece, i));
 		}
 		possibleMoves = possibleMoves >> 1;
@@ -656,10 +657,36 @@ void Board::CastlingMove::undo() {
 }
 //end CastlingMove
 
+//PawnPromotion
+Board::PawnPromotion::PawnPromotion(Piece *_piece, Position newPosition, PIECE_TYPES _newPieceType) : piece(_piece), newPieceType(_newPieceType) {
+	this->newPosition = newPosition;
+	newPiece = board->createPiece(newPieceType, _piece);
+}
+
+void Board::PawnPromotion::apply() {
+	board->removePiece(piece);
+	board->putOnBoard(newPiece);
+}
+
+void Board::PawnPromotion::undo() {
+	board->removePiece(newPiece);
+	board->putOnBoard(piece);
+}
+//end PawnPromotion
+
+Piece* Board::createPiece(PIECE_TYPES type, Piece *oldPiece) {
+	switch (type) {
+	case BISHOPS: return new Bishop(oldPiece->currentPosition, oldPiece->color);
+	case KING: return new King(oldPiece->currentPosition, oldPiece->color);
+	case KNIGHTS: return new Knight(oldPiece->currentPosition, oldPiece->color);
+	case PAWNS: return new Pawn(oldPiece->currentPosition, oldPiece->color);
+	case QUEEN: return new Queen(oldPiece->currentPosition, oldPiece->color);
+	case ROOKS: return new Rook(oldPiece->currentPosition, oldPiece->color);
+	}
+}
+
 void Board::removePiece(Piece *piece) {
 	//Piece *piece = *(*(allPieces) + position);
-
-	tempRemovedPieces.push_back(piece);
 
 	*(*(allPieces) + piece->currentPosition) = nullptr;
 	
@@ -680,17 +707,6 @@ void Board::removeFromBitboards(BITBOARD &bitboard, Position position) {
 	board = board & mask;
 }
 
-void Board::undoMove(Piece *piece, Position oldPosition) {
-
-	movePiece(piece, oldPosition);
-	if (!tempRemovedPieces.empty()) {
-
-		piece = tempRemovedPieces.back();
-		movePiece(piece, piece->currentPosition);
-		piecesVector[piece->color][piece->type].push_back(piece);
-		tempRemovedPieces.pop_back();
-	}
-}
 
 void Board::putOnBoard(Piece *piece) {
 
@@ -727,7 +743,6 @@ Piece* Board::movePiece(Piece *piece, Position newPosition) {
 void Board::pawnPromotion(Piece *piece) {
 	Position currentPosition = piece->currentPosition;
 	removePiece(piece);
-	tempRemovedPieces.pop_back();
 
 	Piece *queen = new Queen(currentPosition, piece->color);
 	delete piece;

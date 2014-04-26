@@ -21,6 +21,7 @@ public:
 	BITBOARD getForwardMoves();
 	BITBOARD getAttackMoves();
 	bool isOnStartingPosition();
+	Pawn();
 };
 
 #endif

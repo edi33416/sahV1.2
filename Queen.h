@@ -10,6 +10,7 @@ private:
 	const static BITBOARD moves;
 public:
 	Queen(Position position, PIECE_COLOR pieceColor);
+	
 };
 
 #endif

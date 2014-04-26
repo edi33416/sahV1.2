@@ -71,7 +71,6 @@ void Engine::sendCommand(Command command) {
 	processCommand(command);
 	std::cout << command;
 	std::fflush(stdout);
-	board.tempRemovedPieces.clear();
 }
 
 void Engine::force() {
@@ -95,7 +94,6 @@ void Engine::engineMove() {
 	std::vector<Board::Move*> v;
 	int index;
 
-	board.tempRemovedPieces.clear();
 	srand(time(NULL));
 	board.canCastle = false;
 	for (int i = 0; i < 6; i++) {
@@ -235,3 +233,11 @@ void Engine::mainLoop() {
 		}
 	}
 }
+
+
+/*struct planta {
+	char *nume;
+	planta *copii[100];
+	planta *parinti[100];
+};
+*/
