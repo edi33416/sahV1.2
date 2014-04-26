@@ -20,6 +20,8 @@ typedef char Color;
 
 class Engine {
 private:
+	static const int DEPTH;
+
 	std::string tok(std::string s, std::string delim);
 	Command currentCommand;
 	Color color;
@@ -31,6 +33,7 @@ private:
 	void processCommand(Command &command);
 	void engineMove();
 	void reset();
+	std::pair<Board::Move*, int> negamax(PIECE_COLOR playerColor, int depth);
 
 	PIECE_COLOR engineColor;
 	PIECE_COLOR colorToMove;

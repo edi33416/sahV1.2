@@ -24,14 +24,6 @@ typedef char DIRECTION;
 #define ROOK_ORIGINAL_POSITION ((king->currentPosition) + (((1 + castlingDirection) >> 1) + 2) * castlingDirection)
 
 class Board {
-private:
-	static const int DEPTH;
-	void removeFromBitboards(BITBOARD &bitboard, Position position);
-	BITBOARD genNegativeMoves(const Position position, const Position direction);
-	BITBOARD genPositiveMoves(const Position position, const Position direction);
-	std::pair<Position, int> negamax(PIECE_COLOR playerColor, int depth);
-	int evaluate(PIECE_COLOR playerColor);
-
 public:
 	bool canCastle;
 	class Move {
@@ -68,7 +60,6 @@ public:
 
 public:
 	std::vector<Piece*> tempRemovedPieces;
-
 	
 	void printBitboard(BITBOARD boardToPrint);
 	void printDebug();
@@ -93,6 +84,7 @@ public:
 	Piece* movePiece(Piece *piece, Position newPosition);
 	void tempMovePiece(Piece *piece, Position newPosition); 
 	void pawnPromotion(Piece *piece);
+	int evaluate(PIECE_COLOR playerColor);
 
 	//MODFICAT
 	inline bool pathClearForCastl(Rook *rook);
@@ -104,6 +96,12 @@ public:
 	void putOnBoard(Piece *piece);
 	Board();
 	~Board();
+
+private:
+	void removeFromBitboards(BITBOARD &bitboard, Position position);
+	BITBOARD genNegativeMoves(const Position position, const Position direction);
+	BITBOARD genPositiveMoves(const Position position, const Position direction);
+
 };
 
 #endif

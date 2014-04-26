@@ -6,6 +6,8 @@
 #include <math.h>
 #include <time.h>
 
+const int Engine::DEPTH = 2;
+
 std::string Engine::tok(std::string s, std::string delim) {
 	static size_t next = 0;
 	size_t pos;
@@ -85,76 +87,58 @@ void Engine::go() {
 	engineMove();
 }
 
-void Engine::engineMove() {
-	Piece *piece;
-	Command command;
-	Board::Move *move;
+std::pair<Board::Move*, int> Engine::negamax(PIECE_COLOR playerColor, int depth) {
+	if (depth == 0) {
+		return std::pair<Board::Move*, int>(nullptr, board.evaluate(playerColor));
+	}
 
-	std::vector<Piece*> moveablePieces;
-	std::vector<std::vector<Board::Move*>> possibleMoves;
-	std::vector<Board::Move*> v;
-	int index;
-
-	board.tempRemovedPieces.clear();
-	srand(time(NULL));
-	board.canCastle = false;
+	std::pair<Board::Move*, int> bestMove(nullptr, INT_MIN);
 	for (int i = 0; i < 6; i++) {
-		for (unsigned int j = 0; j < board.piecesVector[engineColor][i].size(); j++) {
-			piece = board.piecesVector[engineColor][i][j];
-			v = board.getPossiblePosition(piece);
-			for (unsigned int k = 0; k < v.size(); k++) {
-				move = v[k];
-				move->apply();
-				if (board.isCheckMate() || (board.canCastle && !move->isCastling)) {
-					v.erase(v.begin() + k);
-					k--;
+		for (unsigned int j = 0; j < board.piecesVector[playerColor][i].size(); j++) {
+
+			std::vector<Board::Move*> moves = board.getPossiblePosition(board.piecesVector[playerColor][i][j]);
+
+			for (unsigned int k = 0; k < moves.size(); k++) {
+
+				moves[k]->apply();
+
+				if (board.isCheckMate()) {
+					moves[k]->undo();
+					continue;
 				}
-				else {
-					if (!move->isCastling) {
-						Board::BasicMove *b = (Board::BasicMove*) move;
-						if (b->piece1->type == ROOKS || b->piece1->type == KING) {
-							v.erase(v.begin() + k);
-							k--;
-						}
-					}
+
+				std::pair<Board::Move*, int> currentMove = negamax(playerColor, depth - 1);
+				currentMove.second = -currentMove.second;
+
+				if (currentMove.second > bestMove.second) {
+					bestMove.second = currentMove.second;
+					bestMove.first = moves[k];
 				}
-				move->undo();
-			}
-			if (!v.empty()) {
-				moveablePieces.push_back(piece);
-				possibleMoves.push_back(v);
+
+				moves[k]->undo();
 			}
 		}
 	}
 
-	//if (isForced)
-		//board.printDebug();
+	return bestMove;
+}
+
+void Engine::engineMove() {
+	Command command;
+	Board::Move *move;
 
 	if (!isForced) {
-		if (moveablePieces.empty()) {
+		std::pair<Board::Move*, int> bestMove = negamax(engineColor, DEPTH);
+
+		if (bestMove.second == INT_MIN) {
 			sendCommand("resign");
 			return;
 		}
-		if (board.canCastle) {
-			int i = 0;
-			while (moveablePieces[i]->type != KING)
-				i++;
-			move = possibleMoves[i][0];
-		}
-		else {
-			piece = moveablePieces[(index = (rand() % moveablePieces.size()))];
-			move = possibleMoves[index][rand() % possibleMoves[index].size()];
-		}
+		move = bestMove.first;
+
 		move->apply();
+
 		command = computeCommnandForWinboard(move->oldPosition, move->newPosition);
-		//board.movePiece(piece, newPosition);
-		// Promoting pawn
-		/*
-		if (newPosition < 8 && newPosition >= 0 && piece->type == PAWNS) {
-			//command.insert(9, "q");
-			board.pawnPromotion(piece);
-		}
-		*/
 
 		sendCommand(command);
 		

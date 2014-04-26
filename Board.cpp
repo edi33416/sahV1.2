@@ -1,7 +1,5 @@
 #include "Board.h"
 
-const int Board::DEPTH = 4;
-
 Board::Board() {
 
 	Move::board = this;
@@ -761,34 +759,16 @@ void Board::printDebug() {
 bool Board::isCheckMate() {
 	BITBOARD kingPosition = 1;
 	kingPosition = kingPosition << piecesVector[BLACK][KING][0]->currentPosition;
+
 	kingPosition &= (nextStep[WHITE][PAWNS] | nextStep[WHITE][KNIGHTS] |
 					 nextStep[WHITE][ROOKS] | nextStep[WHITE][BISHOPS] |
 					 nextStep[WHITE][QUEEN] | nextStep[WHITE][KING]);
 
-	/*
-	std::cout<<"#cai + pioni albi negri \n";
-	printBitboard(nextStep[WHITE][KNIGHTS]);
-	printBitboard(nextStep[WHITE][PAWNS]);
-	printBitboard(nextStep[BLACK][KNIGHTS]);
-	printBitboard(nextStep[BLACK][PAWNS]);
-
-	std::cout<<"#whiteboard\n";
-	printBitboard(boardsVector[WHITE]);
-
-	std::cout<<"#blackboard\n";
-	printBitboard(boardsVector[BLACK]);
-
-	std::cout<<"#board\n";
-	printBitboard(board);
-
-	std::cout << "#no more cai/pioni\n";
-	*/
 	if (kingPosition == 0)
 		return false;
 	return true;
 }
 
-<<<<<<< HEAD
 int Board::evaluate(PIECE_COLOR playerColor) {
 	int s = 0;
 
@@ -799,42 +779,4 @@ int Board::evaluate(PIECE_COLOR playerColor) {
 	return s;
 }
 
-std::pair<Position, int> Board::negamax(PIECE_COLOR playerColor, int depth) {
-	if (depth == 0){
-		return std::pair<Position, int>(0, evaluate(playerColor));
-	}
-
-	std::pair<Position, int> bestMove (0, INT_MIN);
-	for (int i = 0; i < 6; i++) {
-		for (unsigned int j = 0; j < piecesVector[playerColor][i].size(); j++) {
-
-			std::vector<Position> moves = getPossiblePosition(piecesVector[playerColor][i][j]);
-
-			for (unsigned int k = 0; k < moves.size(); k++) {
-
-				Position oldPosition = piecesVector[playerColor][i][j]->currentPosition;
-				movePiece(piecesVector[playerColor][i][j], moves[k]);
-
-				if (isCheckMate()) {
-					undoMove(piecesVector[playerColor][i][j], oldPosition);
-					continue;
-				}
-
-				std::pair<Position, int> currentMove = negamax(playerColor, depth - 1);
-				currentMove.second = -currentMove.second;
-
-				if (currentMove.second > bestMove.second) {
-					bestMove.second = currentMove.second;
-					bestMove.first = moves[k];
-				}
-
-				undoMove(piecesVector[playerColor][i][j], oldPosition);
-			}
-		}
-	}
-
-	return bestMove;
-}
-=======
 Board* Board::Move::board = 0;
->>>>>>> tempbranch
