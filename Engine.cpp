@@ -88,33 +88,41 @@ void Engine::go() {
 void Engine::engineMove() {
 	Piece *piece;
 	Command command;
-	Position newPosition = -1, oldPosition;
+	Board::Move *move;
 
 	std::vector<Piece*> moveablePieces;
-	std::vector<std::vector<Position>> possiblePositions;
-	std::vector<Position> v;
+	std::vector<std::vector<Board::Move*>> possibleMoves;
+	std::vector<Board::Move*> v;
 	int index;
 
 	board.tempRemovedPieces.clear();
 	srand(time(NULL));
+	board.canCastle = false;
 	for (int i = 0; i < 6; i++) {
 		for (unsigned int j = 0; j < board.piecesVector[engineColor][i].size(); j++) {
 			piece = board.piecesVector[engineColor][i][j];
 			v = board.getPossiblePosition(piece);
 			for (unsigned int k = 0; k < v.size(); k++) {
-				oldPosition = piece->currentPosition;
-				board.movePiece(piece, v[k]);
-				if (board.isCheckMate()) {
+				move = v[k];
+				move->apply();
+				if (board.isCheckMate() || (board.canCastle && !move->isCastling)) {
 					v.erase(v.begin() + k);
 					k--;
 				}
-
-			board.undoMove(piece, oldPosition);
+				else {
+					if (!move->isCastling) {
+						Board::BasicMove *b = (Board::BasicMove*) move;
+						if (b->piece1->type == ROOKS || b->piece1->type == KING) {
+							v.erase(v.begin() + k);
+							k--;
+						}
+					}
+				}
+				move->undo();
 			}
-
 			if (!v.empty()) {
 				moveablePieces.push_back(piece);
-				possiblePositions.push_back(v);
+				possibleMoves.push_back(v);
 			}
 		}
 	}
@@ -127,15 +135,26 @@ void Engine::engineMove() {
 			sendCommand("resign");
 			return;
 		}
-		piece = moveablePieces[(index = rand() % moveablePieces.size())];
-		newPosition = possiblePositions[index][rand() % possiblePositions[index].size()];
-		command = computeCommnandForWinboard(piece->currentPosition, newPosition);
-		board.movePiece(piece, newPosition);
+		if (board.canCastle) {
+			int i = 0;
+			while (moveablePieces[i]->type != KING)
+				i++;
+			move = possibleMoves[i][0];
+		}
+		else {
+			piece = moveablePieces[(index = (rand() % moveablePieces.size()))];
+			move = possibleMoves[index][rand() % possibleMoves[index].size()];
+		}
+		move->apply();
+		command = computeCommnandForWinboard(move->oldPosition, move->newPosition);
+		//board.movePiece(piece, newPosition);
 		// Promoting pawn
+		/*
 		if (newPosition < 8 && newPosition >= 0 && piece->type == PAWNS) {
 			//command.insert(9, "q");
 			board.pawnPromotion(piece);
 		}
+		*/
 
 		sendCommand(command);
 		

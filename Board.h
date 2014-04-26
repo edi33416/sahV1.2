@@ -9,10 +9,19 @@
 #include <fstream>
 //#include "Engine.h"
 #include "utils.h"
-#include "Move.h"
+//#include "Move.h"
+//#include "BasicMove.h"
+//#include "CastlingMove.h"
 
 typedef std::vector<Piece*> PIECE_SET;
 typedef BITBOARD* BITBOARD_SET;
+typedef char DIRECTION;
+
+#define LEFT 1
+#define RIGHT -1
+#define CASTLING_DISTANCE 2
+#define opposite_direction(x) (-(x))
+#define ROOK_ORIGINAL_POSITION ((king->currentPosition) + (((1 + castlingDirection) >> 1) + 2) * castlingDirection)
 
 class Board {
 private:
@@ -22,6 +31,40 @@ private:
 	BITBOARD genPositiveMoves(const Position position, const Position direction);
 	std::pair<Position, int> negamax(PIECE_COLOR playerColor, int depth);
 	int evaluate(PIECE_COLOR playerColor);
+
+public:
+	bool canCastle;
+	class Move {
+	public:
+		Position newPosition, oldPosition;
+		static Board *board;
+		bool isCastling;
+		//Move();
+		virtual void undo() = 0;
+		virtual void apply() = 0;
+	};
+
+	class BasicMove : public Move {
+	private:
+		inline bool isCastlingPiece();
+	public:
+		Piece *piece1, *piece2;
+		BasicMove(Piece *p1, Position newPosition);
+		void apply();
+		void undo();
+	};
+
+	class CastlingMove : public Move {
+	private:
+		King *king;
+		Rook *rook;
+		DIRECTION castlingDirection;	//king castling direction
+
+	public:
+		CastlingMove(King *k, Rook *r);
+		void apply();
+		void undo();
+	};
 
 public:
 	std::vector<Piece*> tempRemovedPieces;
@@ -52,7 +95,8 @@ public:
 	void pawnPromotion(Piece *piece);
 
 	//MODFICAT
-	std::vector<Position> getPossiblePosition(Piece *piece);
+	inline bool pathClearForCastl(Rook *rook);
+	std::vector<Move*> getPossiblePosition(Piece *piece);
 	void removePiece(Piece *piece);
 	void updateNextMoves(PIECE_TYPES pieceType, PIECE_COLOR pieceColor);
 	BITBOARD getPossibleMoves(Piece *piece);
