@@ -769,6 +769,7 @@ bool Board::isCheckMate() {
 	return true;
 }
 
+// TODO
 int Board::evaluate(PIECE_COLOR playerColor) {
 	int s = 0;
 
