@@ -575,10 +575,20 @@ std::vector<Board::Move*> Board::getPossiblePosition(Piece *piece) {
 
 	possibleMoves = possibleMoves & (~(mask << piece->currentPosition));
 
+	if (piece->type == PAWNS) {
+		for (Position i = 0; i<64; i++) {
+			if ((mask & possibleMoves) == 1) {
+				//return i;
+				if (i == LAST_ROW(piece))
+				v.push_back(new BasicMove(piece, i));
+			}
+			possibleMoves = possibleMoves >> 1;
+		}
+	}
+
 	for (Position i=0; i<64; i++) {
 		if ((mask & possibleMoves) == 1) {
 			//return i;
-			//if (piece->type == PAWNS && piece->
 			v.push_back(new BasicMove(piece, i));
 		}
 		possibleMoves = possibleMoves >> 1;
@@ -676,11 +686,11 @@ void Board::PawnPromotion::undo() {
 
 Piece* Board::createPiece(PIECE_TYPES type, Piece *oldPiece) {
 	switch (type) {
+	case QUEEN: return new Queen(oldPiece->currentPosition, oldPiece->color);
 	case BISHOPS: return new Bishop(oldPiece->currentPosition, oldPiece->color);
 	case KING: return new King(oldPiece->currentPosition, oldPiece->color);
 	case KNIGHTS: return new Knight(oldPiece->currentPosition, oldPiece->color);
 	case PAWNS: return new Pawn(oldPiece->currentPosition, oldPiece->color);
-	case QUEEN: return new Queen(oldPiece->currentPosition, oldPiece->color);
 	case ROOKS: return new Rook(oldPiece->currentPosition, oldPiece->color);
 	}
 }
