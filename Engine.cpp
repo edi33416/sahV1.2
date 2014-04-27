@@ -135,14 +135,13 @@ void Engine::engineMove() {
 		move = bestMove.first;
 
 		move->apply();
+		std::cout << "# " << ((CastlingPiece*)board.piecesVector[BLACK][KING][0])->moveCount << "\n";
 
 		command = computeCommnandForWinboard(move->oldPosition, move->newPosition);
 
 		sendCommand(command);
-		board.printBitboard(board.boardsVector[engineColor]);
 		
 		colorToMove = (colorToMove == WHITE) ? BLACK : WHITE;
-		board.printBitboard(board.boardsVector[colorToMove]);
 	}
 }
 
