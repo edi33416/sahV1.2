@@ -164,7 +164,22 @@ void Board::printBitboard(BITBOARD boardToPrint) {
 		mask = mask >> 1;
 	}
 	std::cout << "\n#\n#---------\n# " << std::endl;
+	fflush(stdout);
 
+}
+
+void Board::printPointerBoard(PIECE_COLOR color) {
+	std::cout << "#";
+	for (int i = 0; i < 8; i++) {
+		for (int j = 0; j < 8; j++)
+		if (*(*(allPieces) + 63 - (i * 8 + j)) != nullptr && (*(*(allPieces) + 63 - (i * 8 + j)))->color == color)
+			std::cout << (*(*(allPieces) + 63 - (i * 8 + j)))->type + 1 << " ";
+		else
+			std::cout << "0 ";
+		std::cout << "\n#";
+	}
+	std::cout << "\n";
+	fflush(stdout);
 }
 
 BITBOARD Board::genNegativeMoves(const Position position, const Position direction) {
@@ -178,11 +193,22 @@ BITBOARD Board::genNegativeMoves(const Position position, const Position directi
 
 bool Board::pathClearForCastl(Rook *rook) {
 	Piece *king = piecesVector[rook->color][KING][0];
-
+	/*
 	if (king->currentPosition < rook->currentPosition)
 		return (((1ULL << rook->currentPosition) - (1ULL << (king->currentPosition + 1))) & (board & (255ULL << ((king->currentPosition >> 3) << 3)))) == 0;
 	else
-		return (((1ULL << (king->currentPosition)) - (1ULL << (rook->currentPosition + 1))) & (board & (255ULL << ((king->currentPosition >> 3) << 3)))) == 0;
+		return (((1ULL << (king->currentPosition)) - (1ULL << (rook->currentPosition + 1))) & (board & (255ULL << ((king->currentPosition >> 3) << 3)))) == 0;*/
+	if (king->currentPosition < rook->currentPosition) {
+		for (Position i = king->currentPosition + 1; i < rook->currentPosition; i++)
+			if ( *(*(allPieces) + i) != nullptr)
+				return false;
+		return true;
+	}
+
+	for (Position i = king->currentPosition - 1; i > rook->currentPosition; i--)
+		if ( *(*(allPieces) + i) != nullptr)
+			return false;
+	return true;
 }
 
 
@@ -591,8 +617,8 @@ std::vector<Board::Move*> Board::getPossiblePosition(Piece *piece) {
 						//!!!
 						std::cout << "#Can castle\n";
 						printBitboard(boardsVector[piece->color]);
+						printPointerBoard(piece->color);
 						canCastle = true;
-						fflush(stdout);
 						v.push_back(new CastlingMove((King*)piece, (Rook*)piecesVector[piece->color][ROOKS][i]));
 					}
 				}

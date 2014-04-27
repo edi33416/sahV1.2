@@ -137,11 +137,16 @@ void Engine::engineMove() {
 		move->apply();
 		std::cout << "# " << ((CastlingPiece*)board.piecesVector[BLACK][KING][0])->moveCount << "\n";
 
+		board.printBitboard(board.boardsVector[BLACK]);
+		board.printPointerBoard(BLACK);
 		command = computeCommnandForWinboard(move->oldPosition, move->newPosition);
 
-		sendCommand(command);
 		
 		colorToMove = (colorToMove == WHITE) ? BLACK : WHITE;
+		board.printBitboard(board.boardsVector[WHITE]);
+		board.printPointerBoard(WHITE);
+		sendCommand(command);
+
 	}
 }
 

@@ -64,6 +64,7 @@ public:
 	void printBitboard(BITBOARD boardToPrint);
 	void printDebug();
 	//TODO PRIVATE
+	void printPointerBoard(PIECE_COLOR);
 
 	void init();
 	void erase();
