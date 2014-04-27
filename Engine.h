@@ -11,6 +11,7 @@
 #include "utils.h"
 
 #define COMMAND_RESIGN "resign\n"
+#define DEPTH 4
 
 #define not_found std::string::npos
 
@@ -20,7 +21,6 @@ typedef char Color;
 
 class Engine {
 private:
-	static const int DEPTH;
 
 	std::string tok(std::string s, std::string delim);
 	Command currentCommand;

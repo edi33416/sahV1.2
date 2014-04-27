@@ -6,8 +6,6 @@
 #include <math.h>
 #include <time.h>
 
-const int Engine::DEPTH = 2;
-
 std::string Engine::tok(std::string s, std::string delim) {
 	static size_t next = 0;
 	size_t pos;
@@ -107,7 +105,7 @@ std::pair<Board::Move*, int> Engine::negamax(PIECE_COLOR playerColor, int depth)
 					continue;
 				}
 
-				std::pair<Board::Move*, int> currentMove = negamax(playerColor, depth - 1);
+				std::pair<Board::Move*, int> currentMove = negamax((playerColor == BLACK) ? WHITE : BLACK, depth - 1);
 				currentMove.second = -currentMove.second;
 
 				if (currentMove.second > bestMove.second) {
@@ -141,8 +139,10 @@ void Engine::engineMove() {
 		command = computeCommnandForWinboard(move->oldPosition, move->newPosition);
 
 		sendCommand(command);
+		board.printBitboard(board.boardsVector[engineColor]);
 		
 		colorToMove = (colorToMove == WHITE) ? BLACK : WHITE;
+		board.printBitboard(board.boardsVector[colorToMove]);
 	}
 }
 

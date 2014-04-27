@@ -603,6 +603,7 @@ std::vector<Board::Move*> Board::getPossiblePosition(Piece *piece) {
 Board::BasicMove::BasicMove(Piece *p1, Position newPosition) : piece1(p1) {
 	this->newPosition = newPosition;
 	isCastling = false;
+	oldPosition = piece1->currentPosition;
 }
 
 bool Board::BasicMove::isCastlingPiece() {
@@ -613,7 +614,6 @@ void Board::BasicMove::apply() {
 	if (isCastlingPiece())
 		((CastlingPiece*)piece1)->moveCount++;
 
-	oldPosition = piece1->currentPosition;
 	piece2 = board->movePiece(piece1, newPosition);
 }
 
