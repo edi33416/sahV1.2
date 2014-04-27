@@ -579,7 +579,7 @@ std::vector<Board::Move*> Board::getPossiblePosition(Piece *piece) {
 		for (Position i = 0; i<64; i++) {
 			if ((mask & possibleMoves) == 1) {
 				//return i;
-				if (i == LAST_ROW(piece))
+				//if (i == LAST_ROW(piece))
 				v.push_back(new BasicMove(piece, i));
 			}
 			possibleMoves = possibleMoves >> 1;
