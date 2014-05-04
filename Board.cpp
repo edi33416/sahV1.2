@@ -803,19 +803,23 @@ bool Board::isCheckMate() {
 // TODO
 int Board::evaluate(PIECE_COLOR playerColor) {
 		int s = 0;
-		s += piecesVector[WHITE][0].size() * 1;
-		s += piecesVector[WHITE][1].size() * 3.05;
-		s += piecesVector[WHITE][2].size() * 5.48;
-		s += piecesVector[WHITE][3].size() * 3.5;
-		s += piecesVector[WHITE][4].size() * 1000;
-		s += piecesVector[WHITE][5].size() * 9.94;
 
-		s += piecesVector[BLACK][0].size() * 1;
-		s += piecesVector[BLACK][1].size() * 3.05;
-		s += piecesVector[BLACK][2].size() * 5.48;
-		s += piecesVector[BLACK][3].size() * 3.5;
-		s += piecesVector[BLACK][4].size() * 1000;
-		s += piecesVector[BLACK][5].size() * 9.94;
+		s += piecesVector[playerColor][0].size() * 1;
+		s += piecesVector[playerColor][1].size() * 3.05;
+		s += piecesVector[playerColor][2].size() * 5.48;
+		s += piecesVector[playerColor][3].size() * 3.5;
+		s += piecesVector[playerColor][4].size() * 1000;
+		s += piecesVector[playerColor][5].size() * 9.94;
+
+		playerColor = (playerColor == WHITE) ? BLACK : WHITE;
+
+		s -= piecesVector[playerColor][0].size() * 1;
+		s -= piecesVector[playerColor][1].size() * 3.05;
+		s -= piecesVector[playerColor][2].size() * 5.48;
+		s -= piecesVector[playerColor][3].size() * 3.5;
+		s -= piecesVector[playerColor][4].size() * 1000;
+		s -= piecesVector[playerColor][5].size() * 9.94;
+
 		return s;
 }
 
