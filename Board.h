@@ -7,12 +7,7 @@
 #include "Piece.h"
 #include "Pieces.h"
 #include <fstream>
-//#include "Engine.h"
 #include "utils.h"
-//#include "Move.h"
-//#include "BasicMove.h"
-//#include "CastlingMove.h"
-#include "evaluation.h"
 
 typedef std::vector<Piece*> PIECE_SET;
 typedef BITBOARD* BITBOARD_SET;
@@ -26,13 +21,6 @@ typedef char DIRECTION;
 #define pieceAt(position) (*(*(allPieces) + (position)))
 #define isOnLastRow(position) ((((position) >> 3) == 0) || (((position) >> 3) == 7))
 #define otherColor(color) ((PIECE_COLOR) (WHITE - (color)))
-
-struct eval_vector {
-	int OppoKingTropism[2];
-	int MaterialAdjustement[2];
-	int Blockages[2];
-	int PositionalThemes[2];
-} v;
 
 class Board {
 public:
@@ -131,48 +119,6 @@ private:
 	void removeFromBitboards(BITBOARD &bitboard, Position position);
 	BITBOARD genNegativeMoves(const Position position, const Position direction);
 	BITBOARD genPositiveMoves(const Position position, const Position direction);
-
-
-	//evaluation functions/* preparatory functions */
-	void eval_setPieceLists();
-	void eval_setPawnLists();
-	void eval_clearVector();
-
-	/* king safety*/
-	int kingEval(King *king, Position sq);
-	int kingShield(King *king);
-
-	/* pawn structure */
-	int getPawnScore(PIECE_COLOR color);
-	int getPawnScoreNoList(PIECE_COLOR color);
-	int evalPawnStructure(PIECE_COLOR color);
-	int evalPawnCenter(PIECE_COLOR color);
-	int pawnEval(PIECE_COLOR color, Position sq);
-	int isPFree(PIECE_COLOR color, Position sq); //isPawnFree
-	int isPWeak(PIECE_COLOR color, Position sq); //isPawnFree
-	int isPSupported(Position sq); //isPawnSupported
-
-	/* piece evaluation */
-	void KnightEval(PIECE_COLOR color, Position sq); //
-	void BishopEval(PIECE_COLOR color, Position sq);
-	void BishopEval(PIECE_COLOR color, Position sq);
-	void RookEval(PIECE_COLOR color, Position sq);
-	void QueenEval(PIECE_COLOR color, Position sq);
-
-	/* mobility evaluation */
-	int evalMobility(PIECE_COLOR color);
-	int knightMob(PIECE_COLOR color, Position sq);
-	int bishopMob(PIECE_COLOR color, Position sq);
-	int rookMob(PIECE_COLOR color, Position sq);
-	int sliderMobility(PIECE_COLOR color, Position sq, int vect);
-	int leaperMobility(PIECE_COLOR color, Position sq, char byPiece);
-
-	/* pattern detection */
-	int isNearCol(Position sq1, Position sq2);
-	void blockedCentralPawns();
-	void slavMistake();
-	void evalFianchetto();
-	void blockedRooks();
 
 };
 

@@ -943,3 +943,30 @@ int Board::evaluate(PIECE_COLOR playerColor) {
 }
 
 Board* Board::Move::board = 0;
+
+/* Pawn structure */
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
