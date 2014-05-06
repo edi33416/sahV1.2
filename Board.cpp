@@ -930,7 +930,7 @@ int Board::evaluate(PIECE_COLOR playerColor) {
 		s += piecesVector[playerColor][4].size() * 1000;
 		s += piecesVector[playerColor][5].size() * 9.94;
 
-		playerColor = WHITE - playerColor;
+		playerColor = otherColor(playerColor);
 
 		s -= piecesVector[playerColor][0].size() * 1;
 		s -= piecesVector[playerColor][1].size() * 3.05;
