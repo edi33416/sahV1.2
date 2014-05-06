@@ -135,7 +135,7 @@ void Engine::engineMove() {
 		move = bestMove.first;
 
 		move->apply();
-		std::cout << "# " << ((CastlingPiece*)board.piecesVector[BLACK][KING][0])->moveCount << "\n";
+		std::cout << "# " << ((CastlingPiece*)board.piecesVector[BLACK][KING][0])->moveCount << "rege\n";
 
 		board.printBitboard(board.boardsVector[BLACK]);
 		board.printPointerBoard(BLACK);
@@ -208,13 +208,16 @@ void Engine::mainLoop() {
 		if (currentCommand.find("usermove") != not_found) {
 
 			//update board with user's new move
-
 			currentCommand = currentCommand.substr(9, 14);  //POZITII
 			processCommand(currentCommand);
 			oldPosition = 7 - (currentCommand[0] - 'a') + (currentCommand[1] - '1') * 8;
 			newPosition = 7 - (currentCommand[2] - 'a') + (currentCommand[3] - '1') * 8;
+			/*
 			board.movePiece(*(*board.allPieces + oldPosition), newPosition);
 
+
+			*/
+			board.applyInputMove(oldPosition, newPosition, currentCommand[4]);
 			colorToMove = (colorToMove == BLACK) ? WHITE : BLACK;
 		}
 

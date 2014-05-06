@@ -21,7 +21,9 @@ typedef char DIRECTION;
 #define RIGHT -1
 #define CASTLING_DISTANCE 2
 #define opposite_direction(x) (-(x))
-#define ROOK_ORIGINAL_POSITION ((king->currentPosition) + (((1 + castlingDirection) >> 1) + 2) * castlingDirection)
+#define ROOK_ORIGINAL_POSITION ((king->currentPosition) + (((1 + castlingDirection) >> 1) + 3) * castlingDirection)
+#define pieceAt(position) (*(*(allPieces) + (position)))
+#define isOnLastRow(position) ((((position) >> 3) == 0) || (((position) >> 3) == 7))
 
 class Board {
 public:
@@ -31,7 +33,7 @@ public:
 		Position newPosition, oldPosition;
 		static Board *board;
 		bool isCastling;
-		//Move();
+		Move() {};
 		virtual void undo() = 0;
 		virtual void apply() = 0;
 	};
@@ -40,20 +42,36 @@ public:
 	private:
 		inline bool isCastlingPiece();
 	public:
+		BasicMove() {};
 		Piece *piece1, *piece2;
 		BasicMove(Piece *p1, Position newPosition);
 		void apply();
 		void undo();
+		void set(Piece *piece, Position newPosition);
 	};
 
 	class CastlingMove : public Move {
 	private:
-		King *king;
-		Rook *rook;
 		DIRECTION castlingDirection;	//king castling direction
 
 	public:
+		CastlingMove() {};
 		CastlingMove(King *k, Rook *r);
+		King *king;
+		Rook *rook;
+		void set(King *k, Rook *r);
+		void apply();
+		void undo();
+	};
+
+	class PawnPromotion : public Move {
+	public:
+
+		PawnPromotion(){}
+		PawnPromotion(Piece *p, Position newPosition, PIECE_TYPES newType);
+		Piece *pawn, *newPiece, *removed;
+		PIECE_TYPES newType;
+		void set(Piece *p, Position newPosition, PIECE_TYPES newType);
 		void apply();
 		void undo();
 	};
@@ -78,7 +96,7 @@ public:
 
 	// A matrix of pointers to all the chess pieces
 	Piece *allPieces[8][8];
-
+	Piece* createPiece(PIECE_TYPES type, Piece *oldPiece);
 	Command moveKnight();
 	bool isMovable(PIECE_TYPES pieceType, PIECE_COLOR pieceColor);
 	bool isCheckMate();
@@ -97,6 +115,8 @@ public:
 	void putOnBoard(Piece *piece);
 	Board();
 	~Board();
+	void applyInputMove(Position oldPosition, Position newPosition, char lastChar);
+	PIECE_TYPES getPieceType(char c);
 
 private:
 	void removeFromBitboards(BITBOARD &bitboard, Position position);

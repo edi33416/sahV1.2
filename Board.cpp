@@ -601,9 +601,23 @@ std::vector<Board::Move*> Board::getPossiblePosition(Piece *piece) {
 
 	possibleMoves = possibleMoves & (~(mask << piece->currentPosition));
 
+	// DE              MODIFICIAITAET
+
+	if (piece->type == PAWNS) {
+		for (Position i = 0; i<64; i++) {
+			if ((mask & possibleMoves) == 1) {
+				if (isOnLastRow(i))
+					v.push_back(new PawnPromotion(piece, i, QUEEN));
+				else
+					v.push_back(new BasicMove(piece, i));
+			}
+			possibleMoves = possibleMoves >> 1;
+		}
+		return v;
+	}
+
 	for (Position i=0; i<64; i++) {
 		if ((mask & possibleMoves) == 1) {
-			//return i;
 			v.push_back(new BasicMove(piece, i));
 		}
 		possibleMoves = possibleMoves >> 1;
@@ -616,8 +630,9 @@ std::vector<Board::Move*> Board::getPossiblePosition(Piece *piece) {
 					if (pathClearForCastl((Rook*)piecesVector[piece->color][ROOKS][i])) {
 						//!!!
 						std::cout << "#Can castle\n";
-						printBitboard(boardsVector[piece->color]);
-						printPointerBoard(piece->color);
+						std::cout << "#" << piece->color << "\n";
+						//printBitboard(boardsVector[piece->color]);
+						//printPointerBoard(piece->color);
 						canCastle = true;
 						v.push_back(new CastlingMove((King*)piece, (Rook*)piecesVector[piece->color][ROOKS][i]));
 					}
@@ -630,7 +645,12 @@ std::vector<Board::Move*> Board::getPossiblePosition(Piece *piece) {
 }
 
 //BasicMove
-Board::BasicMove::BasicMove(Piece *p1, Position newPosition) : piece1(p1) {
+Board::BasicMove::BasicMove(Piece *p1, Position newPosition) {
+	set(p1, newPosition);
+}
+
+void Board::BasicMove::set(Piece *piece, Position newPosition) {
+	piece1 = piece;
 	this->newPosition = newPosition;
 	isCastling = false;
 	oldPosition = piece1->currentPosition;
@@ -648,8 +668,15 @@ void Board::BasicMove::apply() {
 }
 
 void Board::BasicMove::undo() {
-	if (isCastlingPiece())
+	if (isCastlingPiece()) {
 		((CastlingPiece*)piece1)->moveCount--;
+		if (piece1->type == KING) {
+			std::cout << "#" << (int)oldPosition << " " << (int)newPosition << " ";
+			if (piece2)
+				std::cout << (int)piece2->currentPosition;
+			std::cout << "\n";
+		}
+	}
 
 	board->movePiece(piece1, oldPosition);
 	if (piece2 != nullptr) {
@@ -660,14 +687,21 @@ void Board::BasicMove::undo() {
 //end BasicMove
 
 //CastlingMove
-Board::CastlingMove::CastlingMove(King *k, Rook *r) : king(k), rook(r) {
+Board::CastlingMove::CastlingMove(King *k, Rook *r) {
+	isCastling = true;
+	set(k, r);
+}
+
+void Board::CastlingMove::set(King *k, Rook *r) {
+	king = k;
+	rook = r;
+
 	if (k->currentPosition > r->currentPosition)
 		castlingDirection = RIGHT;
 	else
 		castlingDirection = LEFT;
 
 	oldPosition = king->currentPosition;
-	isCastling = true;
 }
 
 void Board::CastlingMove::apply() {
@@ -679,12 +713,55 @@ void Board::CastlingMove::apply() {
 }
 
 void Board::CastlingMove::undo() {
-	board->movePiece(rook, ROOK_ORIGINAL_POSITION);
 	board->movePiece(king, king->currentPosition + CASTLING_DISTANCE * opposite_direction(castlingDirection));
+	board->movePiece(rook, ROOK_ORIGINAL_POSITION);
 	king->moveCount--;
 	rook->moveCount--;
 }
 //end CastlingMove
+
+//PawnPromotion
+Board::PawnPromotion::PawnPromotion(Piece *p, Position newPosition, PIECE_TYPES newType) {
+	set(p, newPosition, newType);
+}
+
+void Board::PawnPromotion::set(Piece *p, Position newPosition, PIECE_TYPES newType) {
+	pawn = p;
+	this->newPosition = newPosition;
+	this->newType = newType;
+	oldPosition = pawn->currentPosition;
+	removed = nullptr;
+}
+
+void Board::PawnPromotion::apply() {
+	removed = board->movePiece(pawn, newPosition);
+	newPiece = board->createPiece(newType, pawn);
+	board->removePiece(pawn);
+	board->piecesVector[pawn->color][newType].push_back(newPiece);
+	board->putOnBoard(newPiece);
+}
+
+void Board::PawnPromotion::undo() {
+	board->removePiece(newPiece);
+	board->piecesVector[pawn->color][PAWNS].push_back(pawn);
+	pawn->currentPosition = oldPosition;
+	board->putOnBoard(pawn);
+	if (removed != nullptr) {
+		board->piecesVector[removed->color][removed->type].push_back(removed);
+		board->putOnBoard(removed);
+	}
+}
+
+Piece* Board::createPiece(PIECE_TYPES type, Piece *oldPiece) {
+	switch (type) {
+	case QUEEN: return new Queen(oldPiece->currentPosition, oldPiece->color);
+	case BISHOPS: return new Bishop(oldPiece->currentPosition, oldPiece->color);
+	case KING: return new King(oldPiece->currentPosition, oldPiece->color);
+	case KNIGHTS: return new Knight(oldPiece->currentPosition, oldPiece->color);
+	case PAWNS: return new Pawn(oldPiece->currentPosition, oldPiece->color);
+	case ROOKS: return new Rook(oldPiece->currentPosition, oldPiece->color);
+	}
+}
 
 void Board::removePiece(Piece *piece) {
 	//Piece *piece = *(*(allPieces) + position);
@@ -729,6 +806,48 @@ void Board::putOnBoard(Piece *piece) {
 	*(*allPieces + piece->currentPosition) = piece;
 	board = boardsVector[WHITE] | boardsVector[BLACK];
 	updateNextMoves(piece->type, piece->color);
+}
+
+void Board::applyInputMove(Position oldPosition, Position newPosition, char lastChar) {
+	Piece *piece = pieceAt(oldPosition);
+	static BasicMove bMove;
+	static CastlingMove cMove;
+	static PawnPromotion pPromotion;
+	
+	if (piece->type == KING && oldPosition - newPosition == 2) {
+
+		if (newPosition > oldPosition)
+			cMove.set((King*)piece, (Rook*)pieceAt(piece->currentPosition + 4));
+		else
+			cMove.set((King*)piece, (Rook*)pieceAt(piece->currentPosition - 3));
+
+		cMove.apply();
+		return;
+	}
+
+	if (piece->type == PAWNS && isOnLastRow(newPosition)) {
+		PIECE_TYPES newt = QUEEN;
+
+		if (lastChar != '\0')
+			newt = getPieceType(lastChar);
+		pPromotion.set(piece, newPosition, newt);
+
+		pPromotion.apply();
+		return;
+	}
+
+	bMove.set(piece, newPosition);
+	bMove.apply();
+}
+
+PIECE_TYPES Board::getPieceType(char c) {
+	switch (c) {
+		case 'b': return BISHOPS;
+		case 'r': return ROOKS;
+		case 'k': return KNIGHTS;
+		case 'q': return QUEEN;
+		case 'p': return PAWNS;
+	}
 }
 
 Piece* Board::movePiece(Piece *piece, Position newPosition) {
@@ -808,6 +927,14 @@ int Board::evaluate(PIECE_COLOR playerColor) {
 		s += piecesVector[playerColor][3].size() * 3.5;
 		s += piecesVector[playerColor][4].size() * 1000;
 		s += piecesVector[playerColor][5].size() * 9.94;
+
+
+		s -= piecesVector[WHITE - playerColor][0].size() * 1;
+		s -= piecesVector[WHITE - playerColor][1].size() * 3.05;
+		s -= piecesVector[WHITE - playerColor][2].size() * 5.48;
+		s -= piecesVector[WHITE - playerColor][3].size() * 3.5;
+		s -= piecesVector[WHITE - playerColor][4].size() * 1000;
+		s -= piecesVector[WHITE-  playerColor][5].size() * 9.94;
 		return s;
 }
 
