@@ -10,6 +10,7 @@ Detalii implementare:
 
     #   Reprezentarea tablei interne se face cu ajutorul BITBOARD-urilor
     #   Toate piesele de joc efectueaza miscari legale pana la epuizarea acestora, sau pana cand se realizeaza "SAH MAT"
+    #	Miscarile efectuate au la baza implementarea unui algoritm minimax (negamax), cu o adancime curenta 2
     #   Implementarea tuturor comenzilor necesare etapei
 
 Timp alocat: 40h

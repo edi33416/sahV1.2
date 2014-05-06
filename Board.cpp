@@ -623,6 +623,7 @@ std::vector<Board::Move*> Board::getPossiblePosition(Piece *piece) {
 		possibleMoves = possibleMoves >> 1;
 	}
 
+	/*
 	if (piece->type == KING) {
 		if (((King*)piece)->canCastle() && !isCheckMate()) {
 			for (int i = 0; i < piecesVector[piece->color][ROOKS].size(); i++) {
@@ -640,7 +641,7 @@ std::vector<Board::Move*> Board::getPossiblePosition(Piece *piece) {
 			}
 		}
 	}
-
+	*/
 	return v;
 }
 
@@ -921,6 +922,7 @@ bool Board::isCheckMate() {
 // TODO
 int Board::evaluate(PIECE_COLOR playerColor) {
 		int s = 0;
+
 		s += piecesVector[playerColor][0].size() * 1;
 		s += piecesVector[playerColor][1].size() * 3.05;
 		s += piecesVector[playerColor][2].size() * 5.48;
@@ -928,13 +930,15 @@ int Board::evaluate(PIECE_COLOR playerColor) {
 		s += piecesVector[playerColor][4].size() * 1000;
 		s += piecesVector[playerColor][5].size() * 9.94;
 
+		playerColor = WHITE - playerColor;
 
-		s -= piecesVector[WHITE - playerColor][0].size() * 1;
-		s -= piecesVector[WHITE - playerColor][1].size() * 3.05;
-		s -= piecesVector[WHITE - playerColor][2].size() * 5.48;
-		s -= piecesVector[WHITE - playerColor][3].size() * 3.5;
-		s -= piecesVector[WHITE - playerColor][4].size() * 1000;
-		s -= piecesVector[WHITE-  playerColor][5].size() * 9.94;
+		s -= piecesVector[playerColor][0].size() * 1;
+		s -= piecesVector[playerColor][1].size() * 3.05;
+		s -= piecesVector[playerColor][2].size() * 5.48;
+		s -= piecesVector[playerColor][3].size() * 3.5;
+		s -= piecesVector[playerColor][4].size() * 1000;
+		s -= piecesVector[playerColor][5].size() * 9.94;
+
 		return s;
 }
 
