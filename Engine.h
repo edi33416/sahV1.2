@@ -33,7 +33,7 @@ private:
 	void processCommand(Command &command);
 	void engineMove();
 	void reset();
-	std::pair<Board::Move*, int> negamax(PIECE_COLOR playerColor, int depth);
+	std::pair<Board::Move*, int> negamax(PIECE_COLOR playerColor, int depth, int alpha, int beta);
 
 	PIECE_COLOR engineColor;
 	PIECE_COLOR colorToMove;

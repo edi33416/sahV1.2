@@ -21,6 +21,8 @@ public:
 	BITBOARD getForwardMoves();
 	BITBOARD getAttackMoves();
 	bool isOnStartingPosition();
+	bool eligibleForEP;
+	Piece *EP1 = nullptr, *EP2 = nullptr;
 };
 
 #endif

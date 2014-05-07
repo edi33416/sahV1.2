@@ -8,7 +8,7 @@
 #include "Pieces.h"
 #include <fstream>
 #include "utils.h"
-#include "directions.h"
+//#include "directions.h"
 
 typedef std::vector<Piece*> PIECE_SET;
 typedef BITBOARD* BITBOARD_SET;
@@ -34,6 +34,7 @@ public:
 		Move() {};
 		virtual void undo() = 0;
 		virtual void apply() = 0;
+		Piece *oldEligableEnPassant = nullptr;
 	};
 
 	class BasicMove : public Move {
@@ -43,8 +44,8 @@ public:
 		BasicMove() {};
 		Piece *piece1, *piece2;
 		BasicMove(Piece *p1, Position newPosition);
-		void apply();
-		void undo();
+		virtual void apply();
+		virtual void undo();
 		void set(Piece *piece, Position newPosition);
 	};
 
@@ -74,6 +75,16 @@ public:
 		void undo();
 	};
 
+	class PawnMove : public BasicMove {
+	private:
+		char direction;
+	public:
+		PawnMove() {}
+		PawnMove(Piece *p1, Position newPosition) : BasicMove(p1, newPosition){}
+		void apply();
+		void undo();
+	};
+
 	class EnPassant : public Move {
 	private:
 		Piece *pawn, *removed;
@@ -88,6 +99,10 @@ public:
 	};
 
 public:
+	// Adding piece square tables
+	static const short int pieceSquareTables[7][64];
+	static const char KING_END_GAME = 6;
+
 	std::vector<Piece*> tempRemovedPieces;
 	
 	void printBitboard(BITBOARD boardToPrint);
@@ -110,7 +125,7 @@ public:
 	Piece* createPiece(PIECE_TYPES type, Piece *oldPiece);
 	Command moveKnight();
 	bool isMovable(PIECE_TYPES pieceType, PIECE_COLOR pieceColor);
-	bool isCheckMate();
+	bool isCheckMate(PIECE_COLOR playerColor);
 	Piece* movePiece(Piece *piece, Position newPosition);
 	void tempMovePiece(Piece *piece, Position newPosition); 
 	void pawnPromotion(Piece *piece);
@@ -128,6 +143,10 @@ public:
 	~Board();
 	void applyInputMove(Position oldPosition, Position newPosition, char lastChar);
 	PIECE_TYPES getPieceType(char c);
+	Piece *_EPpawn = nullptr;	//en passant pawn
+
+	// For en passant
+	void setEnPassant(Pawn* pawn);
 
 private:
 	void removeFromBitboards(BITBOARD &bitboard, Position position);

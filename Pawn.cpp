@@ -4,6 +4,7 @@
 
 Pawn::Pawn(Position position, PIECE_COLOR pieceColor) : Piece(position, pieceColor) {
 	type = PIECE_TYPES::PAWNS;
+	eligibleForEP = false;
 }
 
 /*
