@@ -48,7 +48,6 @@ void Board::init() {
 
 	p = new Rook(56, PIECE_COLOR::BLACK);
 	piecesVector[BLACK][ROOKS].push_back(p);
-	//allPieces[7][0] = p;
 	*(*allPieces + 56) = p;
 
 	p = new Rook(63, PIECE_COLOR::BLACK);
@@ -240,17 +239,6 @@ BITBOARD Board::getPossibleMoves(Piece *piece) {
 	}
 	case KING: {
 				   result = ((piece->getAllMoves() ^ boardsVector[piece->color]) & (~boardsVector[piece->color]));
-				   /*
-				   if (((King*)piece)->canCastle() && !isCheckMate()) {
-				   for (int i = 0; i < piecesVector[piece->color][ROOKS].size(); i++) {
-				   if (((Rook*)piecesVector[piece->color][ROOKS][i])->canCastle()) {
-				   if (pathClearForCastl((Rook*)piecesVector[piece->color][ROOKS][i]))
-				   //!!!
-				   results.push_back(new CastlingMove((King*)piece, (Rook*)piecesVector[piece->color][ROOKS][i]));
-				   }
-				   }
-				   }
-				   */
 				   return result;
 	}
 	case ROOKS: {
@@ -623,17 +611,11 @@ std::vector<Board::Move*> Board::getPossiblePosition(Piece *piece) {
 		possibleMoves = possibleMoves >> 1;
 	}
 
-	/*
 	if (piece->type == KING) {
-		if (((King*)piece)->canCastle() && !isCheckMate()) {
+		if (((King*)piece)->canCastle() && !isCheckMate(piece->color)) {
 			for (int i = 0; i < piecesVector[piece->color][ROOKS].size(); i++) {
 				if (((Rook*)piecesVector[piece->color][ROOKS][i])->canCastle()) {
 					if (pathClearForCastl((Rook*)piecesVector[piece->color][ROOKS][i])) {
-						//!!!
-						std::cout << "#Can castle\n";
-						std::cout << "#" << piece->color << "\n";
-						//printBitboard(boardsVector[piece->color]);
-						//printPointerBoard(piece->color);
 						canCastle = true;
 						v.push_back(new CastlingMove((King*)piece, (Rook*)piecesVector[piece->color][ROOKS][i]));
 					}
@@ -641,7 +623,7 @@ std::vector<Board::Move*> Board::getPossiblePosition(Piece *piece) {
 			}
 		}
 	}
-	*/
+
 	return v;
 }
 
@@ -671,12 +653,6 @@ void Board::BasicMove::apply() {
 void Board::BasicMove::undo() {
 	if (isCastlingPiece()) {
 		((CastlingPiece*)piece1)->moveCount--;
-		if (piece1->type == KING) {
-			std::cout << "#" << (int)oldPosition << " " << (int)newPosition << " ";
-			if (piece2)
-				std::cout << (int)piece2->currentPosition;
-			std::cout << "\n";
-		}
 	}
 
 	board->movePiece(piece1, oldPosition);
@@ -906,13 +882,13 @@ void Board::printDebug() {
 	*/
 }
 
-bool Board::isCheckMate() {
+bool Board::isCheckMate(PIECE_COLOR playerColor) {
 	BITBOARD kingPosition = 1;
-	kingPosition = kingPosition << piecesVector[BLACK][KING][0]->currentPosition;
+	kingPosition = kingPosition << piecesVector[playerColor][KING][0]->currentPosition;
 
-	kingPosition &= (nextStep[WHITE][PAWNS] | nextStep[WHITE][KNIGHTS] |
-					 nextStep[WHITE][ROOKS] | nextStep[WHITE][BISHOPS] |
-					 nextStep[WHITE][QUEEN] | nextStep[WHITE][KING]);
+	kingPosition &= (nextStep[otherColor(playerColor)][PAWNS] | nextStep[otherColor(playerColor)][KNIGHTS] |
+					 nextStep[otherColor(playerColor)][ROOKS] | nextStep[otherColor(playerColor)][BISHOPS] |
+					 nextStep[otherColor(playerColor)][QUEEN] | nextStep[otherColor(playerColor)][KING]);
 
 	if (kingPosition == 0)
 		return false;
@@ -922,30 +898,153 @@ bool Board::isCheckMate() {
 // TODO
 int Board::evaluate(PIECE_COLOR playerColor) {
 		int s = 0;
+		int mobility[2] = { 0 };
+		int bonus[2] = { 0 };
 
-		s += piecesVector[playerColor][0].size() * 1;
-		s += piecesVector[playerColor][1].size() * 3.05;
-		s += piecesVector[playerColor][2].size() * 5.48;
-		s += piecesVector[playerColor][3].size() * 3.5;
-		s += piecesVector[playerColor][4].size() * 1000;
-		s += piecesVector[playerColor][5].size() * 9.94;
+		BITBOARD mask = 1;
 
+		for (int i = 0; i < 64; i++) {
+			Piece* piece = pieceAt(i);
+			if (piece != nullptr) {
+				bonus[piece->color] += pieceSquareTables[piece->type][i];
+			}
+
+			for (int pieceType = 0; pieceType < 6; pieceType++) {
+				if ((mask << i) & nextStep[WHITE][pieceType])
+					mobility[WHITE]++;
+				if ((mask << i) & nextStep[BLACK][pieceType])
+					mobility[BLACK]++;
+			}
+		}
+
+		int mobilityScore = mobility[playerColor] - mobility[otherColor(playerColor)];
+		int bonusScore = (bonus[playerColor] - bonus[otherColor(playerColor)]); 
+
+		// Pawns
+		s += piecesVector[playerColor][0].size() * 100;
+		// Knigths
+		s += piecesVector[playerColor][1].size() * 320;
+		// Rooks
+		s += piecesVector[playerColor][2].size() * 500;
+		// Bishops
+		s += piecesVector[playerColor][3].size() * 330;
+		// King
+		s += piecesVector[playerColor][4].size() * 20000;
+		// Queen
+		s += piecesVector[playerColor][5].size() * 900;
+
+		// Switch players color
 		playerColor = otherColor(playerColor);
 
-		s -= piecesVector[playerColor][0].size() * 1;
-		s -= piecesVector[playerColor][1].size() * 3.05;
-		s -= piecesVector[playerColor][2].size() * 5.48;
-		s -= piecesVector[playerColor][3].size() * 3.5;
-		s -= piecesVector[playerColor][4].size() * 1000;
-		s -= piecesVector[playerColor][5].size() * 9.94;
+		// Pawns
+		s -= piecesVector[playerColor][0].size() * 100;
+		// Knigths
+		s -= piecesVector[playerColor][1].size() * 320;
+		// Rooks
+		s -= piecesVector[playerColor][2].size() * 500;
+		// Bishops
+		s -= piecesVector[playerColor][3].size() * 330;
+		// King
+		s -= piecesVector[playerColor][4].size() * 20000;
+		// Queen
+		s -= piecesVector[playerColor][5].size() * 900;
+
+		s += mobilityScore + bonusScore;
 
 		return s;
 }
 
 Board* Board::Move::board = 0;
 
-/* Pawn structure */
+/* Piece square tables initialisation*/
 
+const short int Board::pieceSquareTables[7][64] = {
+	// Pawns
+	{
+	0, 0, 0, 0, 0, 0, 0, 0,
+	5, 10, 10, -20, -20, 10, 10, 5,
+	5, -5, -10, 0, 0, -10, -5, 5,
+	0, 0, 0, 20, 20, 0, 0, 0,
+	5, 5, 10, 25, 25, 10, 5, 5,
+	10, 10, 20, 30, 30, 20, 10, 10,
+	50, 50, 50, 50, 50, 50, 50, 50,
+	0, 0, 0, 0, 0, 0, 0, 0
+	},
+
+	// Knights
+	{
+		-50, -40, -30, -30, -30, -30, -40, -50,
+		-40, -20, 0, 5, 5, 0, -20, -40,
+		-30, 5, 10, 15, 15, 10, 5, -30,
+		-30, 0, 15, 20, 20, 15, 0, -30,
+		-30, 5, 15, 20, 20, 15, 5, -30,
+		-30, 0, 10, 15, 15, 10, 0, -30,
+		-40, -20, 0, 0, 0, 0, -20, -40,
+		-50, -40, -30, -30, -30, -30, -40, -50
+	},
+
+	// Rooks
+	{
+		0, 0, 0, 5, 5, 0, 0, 0,
+		-5, 0, 0, 0, 0, 0, 0, -5,
+		-5, 0, 0, 0, 0, 0, 0, -5,
+		-5, 0, 0, 0, 0, 0, 0, -5,
+		-5, 0, 0, 0, 0, 0, 0, -5,
+		-5, 0, 0, 0, 0, 0, 0, -5,
+		5, 10, 10, 10, 10, 10, 10, 5,
+		0, 0, 0, 0, 0, 0, 0, 0
+	},
+
+	// Bishops
+	{
+		-20, -10, -10, -10, -10, -10, -10, -20,
+		-10, 5, 0, 0, 0, 0, 5, -10,
+		-10, 10, 10, 10, 10, 10, 10, -10,
+		-10, 0, 10, 10, 10, 10, 0, -10,
+		-10, 5, 5, 10, 10, 5, 5, -10,
+		-10, 0, 5, 10, 10, 5, 0, -10,
+		-10, 0, 0, 0, 0, 0, 0, -10,
+		-20, -10, -10, -10, -10, -10, -10, -20
+	},
+
+	// King middle game
+	// Towards the end of the game it will be replaced by
+	// the king end game square table
+	{
+		20, 30, 10, 0, 0, 10, 30, 20,
+		20, 20, 0, 0, 0, 0, 20, 20,
+		-10, -20, -20, -20, -20, -20, -20, -10,
+		-20, -30, -30, -40, -40, -30, -30, -20,
+		-30, -40, -40, -50, -50, -40, -40, -30,
+		-30, -40, -40, -50, -50, -40, -40, -30,
+		-30, -40, -40, -50, -50, -40, -40, -30,
+		-30, -40, -40, -50, -50, -40, -40, -30
+	},
+
+	// Queen
+	{
+		-20, -10, -10, -5, -5, -10, -10, -20,
+		-10, 0, 0, 0, 0, 5, 0, -10,
+		-10, 0, 5, 5, 5, 5, 5, -10,
+		-5, 0, 5, 5, 5, 5, 0, 0,
+		-5, 0, 5, 5, 5, 5, 0, -5,
+		-10, 0, 5, 5, 5, 5, 0, -10,
+		-10, 0, 0, 0, 0, 0, 0, -10,
+		-20, -10, -10, -5, -5, -10, -10, -20
+	},
+
+	// King end-game
+	{
+		-50, -30, -30, -30, -30, -30, -30, -50,
+		-30, -30, 0, 0, 0, 0, -30, -30,
+		-30, -10, 20, 30, 30, 20, -10, -30,
+		-30, -10, 30, 40, 40, 30, -10, -30,
+		-30, -10, 30, 40, 40, 30, -10, -30,
+		-30, -10, 20, 30, 30, 20, -10, -30,
+		-30, -20, -10, 0, 0, -10, -20, -30,
+		-50, -40, -30, -20, -20, -30, -40, -50
+	}
+};
 
 
 

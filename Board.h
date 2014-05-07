@@ -74,6 +74,10 @@ public:
 	};
 
 public:
+	// Adding piece square tables
+	static const short int pieceSquareTables[7][64];
+	static const char KING_END_GAME = 6;
+
 	std::vector<Piece*> tempRemovedPieces;
 	
 	void printBitboard(BITBOARD boardToPrint);
@@ -96,7 +100,7 @@ public:
 	Piece* createPiece(PIECE_TYPES type, Piece *oldPiece);
 	Command moveKnight();
 	bool isMovable(PIECE_TYPES pieceType, PIECE_COLOR pieceColor);
-	bool isCheckMate();
+	bool isCheckMate(PIECE_COLOR playerColor);
 	Piece* movePiece(Piece *piece, Position newPosition);
 	void tempMovePiece(Piece *piece, Position newPosition); 
 	void pawnPromotion(Piece *piece);

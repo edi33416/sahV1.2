@@ -85,7 +85,7 @@ void Engine::go() {
 	engineMove();
 }
 
-std::pair<Board::Move*, int> Engine::negamax(PIECE_COLOR playerColor, int depth) {
+std::pair<Board::Move*, int> Engine::negamax(PIECE_COLOR playerColor, int depth, int alpha, int beta) {
 	if (depth == 0) {
 		return std::pair<Board::Move*, int>(nullptr, board.evaluate(playerColor));
 	}
@@ -100,19 +100,26 @@ std::pair<Board::Move*, int> Engine::negamax(PIECE_COLOR playerColor, int depth)
 
 				moves[k]->apply();
 
-				if (board.isCheckMate()) {
+				if (board.isCheckMate(engineColor)) {
 					moves[k]->undo();
 					continue;
 				}
 
-				std::pair<Board::Move*, int> currentMove = negamax(((playerColor == WHITE) ? BLACK : WHITE), depth - 1);
+				std::pair<Board::Move*, int> currentMove = negamax(((playerColor == WHITE) ? BLACK : WHITE), depth - 1, -beta, -alpha);
 				currentMove.second = -currentMove.second;
+			
+				currentMove.first = moves[k];
 
-				if (currentMove.second > bestMove.second) {
-					bestMove.second = currentMove.second;
-					bestMove.first = moves[k];
+				if (currentMove.second >= alpha) {
+					alpha = currentMove.second;
+					bestMove.first = currentMove.first;
+					bestMove.second = alpha;
 				}
 
+				if (alpha >= beta) {
+					moves[k]->undo();
+					break;
+				}
 				moves[k]->undo();
 			}
 		}
@@ -126,7 +133,7 @@ void Engine::engineMove() {
 	Board::Move *move;
 
 	if (!isForced) {
-		std::pair<Board::Move*, int> bestMove = negamax(engineColor, DEPTH);
+		std::pair<Board::Move*, int> bestMove = negamax(engineColor, DEPTH, -200000, 200000);
 
 		if (bestMove.second == INT_MIN) {
 			sendCommand("resign");
@@ -135,16 +142,16 @@ void Engine::engineMove() {
 		move = bestMove.first;
 
 		move->apply();
-		std::cout << "# " << ((CastlingPiece*)board.piecesVector[BLACK][KING][0])->moveCount << "rege\n";
+		//std::cout << "# " << ((CastlingPiece*)board.piecesVector[BLACK][KING][0])->moveCount << "rege\n";
 
-		board.printBitboard(board.boardsVector[BLACK]);
-		board.printPointerBoard(BLACK);
+		//board.printBitboard(board.boardsVector[BLACK]);
+		//board.printPointerBoard(BLACK);
 		command = computeCommnandForWinboard(move->oldPosition, move->newPosition);
 
 		
 		colorToMove = (colorToMove == WHITE) ? BLACK : WHITE;
-		board.printBitboard(board.boardsVector[WHITE]);
-		board.printPointerBoard(WHITE);
+		//board.printBitboard(board.boardsVector[WHITE]);
+		//board.printPointerBoard(WHITE);
 		sendCommand(command);
 
 	}

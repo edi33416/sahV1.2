@@ -6,6 +6,27 @@
 #include "Piece.h"
 #include "Knight.h"
 
+void transpose() {
+	std::ofstream f("fix.txt");
+	int v[64] = {
+		-50, -40, -30, -20, -20, -30, -40, -50,
+		-30, -20, -10, 0, 0, -10, -20, -30,
+		-30, -10, 20, 30, 30, 20, -10, -30,
+		-30, -10, 30, 40, 40, 30, -10, -30,
+		-30, -10, 30, 40, 40, 30, -10, -30,
+		-30, -10, 20, 30, 30, 20, -10, -30,
+		-30, -30, 0, 0, 0, 0, -30, -30,
+		-50, -30, -30, -30, -30, -30, -30, -50
+	};
+
+	for (int i = 63; i >= 0; i--) {
+		f << v[i] << ", ";
+		if (i % 8 == 0)
+			f << std::endl;
+	}
+}
+
+
 std::vector<BITBOARD> generateKnightBitboard() {
 	BITBOARD board = 0, mask = 1;
 	std::vector<BITBOARD> allMoves;
@@ -186,14 +207,14 @@ int main() {
 	std::ofstream debug("matriceDebugRege.txt");
 	std::vector<BITBOARD> allMoves;
 
-	allMoves = generateKingMoves();
+	//allMoves = generateKingMoves();
 	//printBitboard(allForwardMoves[0], test);
 
 	for (int i=0; i<64; i++) {
 		printBitboard(allMoves[i], debug);
 		f<<"0x"<<std::hex<<allMoves[i]<<"ULL, ";
 	}
-
+	transpose();
 	f.close();
 	debug.close();
 	getchar();
