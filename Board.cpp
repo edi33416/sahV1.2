@@ -623,7 +623,6 @@ std::vector<Board::Move*> Board::getPossiblePosition(Piece *piece) {
 		possibleMoves = possibleMoves >> 1;
 	}
 
-	/*
 	if (piece->type == KING) {
 		if (((King*)piece)->canCastle() && !isCheckMate()) {
 			for (int i = 0; i < piecesVector[piece->color][ROOKS].size(); i++) {
@@ -641,7 +640,6 @@ std::vector<Board::Move*> Board::getPossiblePosition(Piece *piece) {
 			}
 		}
 	}
-	*/
 	return v;
 }
 
@@ -740,6 +738,7 @@ void Board::PawnPromotion::apply() {
 	board->removePiece(pawn);
 	board->piecesVector[pawn->color][newType].push_back(newPiece);
 	board->putOnBoard(newPiece);
+	delete pawn;
 }
 
 void Board::PawnPromotion::undo() {
@@ -751,6 +750,31 @@ void Board::PawnPromotion::undo() {
 		board->piecesVector[removed->color][removed->type].push_back(removed);
 		board->putOnBoard(removed);
 	}
+	delete newPiece;
+}
+
+//end PawnPromotion
+
+//EnPassant
+Board::EnPassant::EnPassant(Piece *p, Piece *removed) {
+	set(p, removed);
+}
+
+void Board::EnPassant::set(Piece *p, Piece *removed) {
+	pawn = p;
+	oldPosition = pawn->currentPosition;
+	this->removed = removed;
+}
+
+void Board::EnPassant::apply() {
+	board->movePiece(pawn, newPosition);
+	board->removePiece(removed);
+}
+
+void Board::EnPassant::undo() {
+	board->movePiece(pawn, oldPosition);
+	board->piecesVector[removed->color][removed->type].push_back(removed);
+	board->putOnBoard(removed);
 }
 
 Piece* Board::createPiece(PIECE_TYPES type, Piece *oldPiece) {
@@ -907,6 +931,7 @@ void Board::printDebug() {
 }
 
 bool Board::isCheckMate() {
+	
 	BITBOARD kingPosition = 1;
 	kingPosition = kingPosition << piecesVector[BLACK][KING][0]->currentPosition;
 
@@ -941,5 +966,4 @@ int Board::evaluate(PIECE_COLOR playerColor) {
 
 		return s;
 }
-
 Board* Board::Move::board = 0;
