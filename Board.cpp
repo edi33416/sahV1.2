@@ -1002,22 +1002,23 @@ int Board::evaluate(PIECE_COLOR playerColor) {
 		for (int i = 0; i < 64; i++) {
 			Piece* piece = pieceAt(i);
 			if (piece != nullptr) {
-				bonus[piece->color] += pieceSquareTables[piece->type][i];
+				bonus[piece->color] += getPieceScore(piece);
 			}
 
+			mask = (1ULL) << i;
 			for (int pieceType = 0; pieceType < 6; pieceType++) {
-				if ((mask << i) & nextStep[WHITE][pieceType])
+				if (mask & nextStep[WHITE][pieceType])
 					mobility[WHITE]++;
-				if ((mask << i) & nextStep[BLACK][pieceType])
+				if (mask & nextStep[BLACK][pieceType])
 					mobility[BLACK]++;
 			}
 		}
 
-		int mobilityScore = mobility[playerColor] - mobility[otherColor(playerColor)];
+		int mobilityScore = mobility[playerColor] * (mobility[playerColor] - mobility[otherColor(playerColor)]);
 		int bonusScore = (bonus[playerColor] - bonus[otherColor(playerColor)]); 
 
 		// Pawns
-		s += piecesVector[playerColor][0].size() * 10000;
+		s += piecesVector[playerColor][0].size() * 100;
 		// Knigths
 		s += piecesVector[playerColor][1].size() * 320;
 		// Rooks
@@ -1033,7 +1034,7 @@ int Board::evaluate(PIECE_COLOR playerColor) {
 		playerColor = otherColor(playerColor);
 
 		// Pawns
-		s -= piecesVector[playerColor][0].size() * 10000;
+		s -= piecesVector[playerColor][0].size() * 100;
 		// Knigths
 		s -= piecesVector[playerColor][1].size() * 320;
 		// Rooks
@@ -1045,7 +1046,7 @@ int Board::evaluate(PIECE_COLOR playerColor) {
 		// Queen
 		s -= piecesVector[playerColor][5].size() * 900;
 
-		s += mobilityScore + bonusScore;
+		s +=bonusScore;
 
 		return s;
 }
@@ -1053,6 +1054,17 @@ int Board::evaluate(PIECE_COLOR playerColor) {
 Board* Board::Move::board = 0;
 
 /* Piece square tables initialisation*/
+
+int Board::getPieceScore(Piece *p) {
+	/*
+	if (p->color == BLACK) {
+		return pieceSquareTables[p->type][p->currentPosition];
+	}
+
+	return pieceSquareTables[p->type][63 - p->currentPosition];
+	*/
+	return 0;
+}
 
 const short int Board::pieceSquareTables[7][64] = {
 	// Pawns
@@ -1088,7 +1100,7 @@ const short int Board::pieceSquareTables[7][64] = {
 		-5, 0, 0, 0, 0, 0, 0, -5,
 		-5, 0, 0, 0, 0, 0, 0, -5,
 		5, 10, 10, 10, 10, 10, 10, 5,
-		0, 0, 0, 0, 0, 0, 0, 0
+		-1, 0, 0, 0, 0, 0, 0, -1
 	},
 
 	// Bishops

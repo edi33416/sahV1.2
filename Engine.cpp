@@ -109,19 +109,20 @@ std::pair<Board::Move*, int> Engine::negamax(PIECE_COLOR playerColor, int depth,
 				currentMove.second = -currentMove.second;
 			
 				currentMove.first = moves[k];
-				if (dynamic_cast<Board::EnPassant*>(moves[k]) != 0) {
-					currentMove.second += 200000;
-				}
+				//if (dynamic_cast<Board::EnPassant*>(moves[k]) != 0) {
+				//	currentMove.second += 200000;
+				//}
 
-				if (currentMove.second >= alpha) {
+				if (currentMove.second > alpha) {
 					alpha = currentMove.second;
 					bestMove.first = currentMove.first;
 					bestMove.second = alpha;
 				}
 
 				if (alpha >= beta) {
+					bestMove.second = beta;
 					moves[k]->undo();
-					break;
+					return bestMove;
 				}
 				moves[k]->undo();
 			}

@@ -152,6 +152,7 @@ private:
 	void removeFromBitboards(BITBOARD &bitboard, Position position);
 	BITBOARD genNegativeMoves(const Position position, const Position direction);
 	BITBOARD genPositiveMoves(const Position position, const Position direction);
+	int getPieceScore(Piece *p);
 };
 
 #endif
