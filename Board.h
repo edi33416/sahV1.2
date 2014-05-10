@@ -8,6 +8,8 @@
 #include "Pieces.h"
 #include <fstream>
 #include "utils.h"
+#include <unordered_map>
+#include <random>
 //#include "directions.h"
 
 typedef std::vector<Piece*> PIECE_SET;
@@ -98,6 +100,26 @@ public:
 		void undo();
 	};
 
+	typedef struct MoveScore {
+		Move *move;
+		int score;
+		PIECE_COLOR playerColor = BLACK;
+		MoveScore(Move *m, int s) {
+			move = m;
+			score = s;
+		}
+		void rotatePositions() {
+			move->oldPosition = 63 - move->oldPosition;
+			move->newPosition = 63 - move->newPosition;
+		}
+		MoveScore() {}
+
+		/*void apply() {
+			move->apply();
+		}*/
+	};
+
+
 public:
 	// Adding piece square tables
 	static const short int pieceSquareTables[7][64];
@@ -122,13 +144,10 @@ public:
 
 	// A matrix of pointers to all the chess pieces
 	Piece *allPieces[8][8];
-	Piece* createPiece(PIECE_TYPES type, Piece *oldPiece);
-	Command moveKnight();
+
 	bool isMovable(PIECE_TYPES pieceType, PIECE_COLOR pieceColor);
 	bool isCheckMate(PIECE_COLOR playerColor);
 	Piece* movePiece(Piece *piece, Position newPosition);
-	void tempMovePiece(Piece *piece, Position newPosition); 
-	void pawnPromotion(Piece *piece);
 	int evaluate(PIECE_COLOR playerColor);
 
 	//MODFICAT
@@ -137,8 +156,6 @@ public:
 	void removePiece(Piece *piece);
 	void updateNextMoves(PIECE_TYPES pieceType, PIECE_COLOR pieceColor);
 	BITBOARD getPossibleMoves(Piece *piece);
-	void undoMove(Piece *piece, Position oldPosition);
-	void putOnBoard(Piece *piece);
 	Board();
 	~Board();
 	void applyInputMove(Position oldPosition, Position newPosition, char lastChar);
@@ -147,12 +164,34 @@ public:
 
 	// For en passant
 	void setEnPassant(Pawn* pawn);
+	void addToHash(MoveScore m, PIECE_COLOR playerColor);
+	bool hasBeenEvald(PIECE_COLOR playerColor);
+	MoveScore getMove();
+	void printHash();
 
 private:
+	typedef struct HashVal {
+		MoveScore move;
+		bool stillUseful = true;
+		HashVal(MoveScore &m) {
+			move = m;
+		}
+
+	};
+
+	ULL pieceKeys[2][6][64];
+	MoveScore evaldMove;
+	void putOnBoard(Piece *piece);
+	Piece* createPiece(PIECE_TYPES type, Piece *oldPiece);
 	void removeFromBitboards(BITBOARD &bitboard, Position position);
 	BITBOARD genNegativeMoves(const Position position, const Position direction);
 	BITBOARD genPositiveMoves(const Position position, const Position direction);
 	int getPieceScore(Piece *p);
+
+	std::unordered_map<ULL, HashVal> evalMap;
+	ULL calcBoardKey(PIECE_COLOR playerColor);
+	//void saveMove(HashVal v);
+
 };
 
 #endif

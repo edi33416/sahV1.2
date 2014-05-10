@@ -1,7 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "Knight.h"
 #include "Engine.h"
 #include <math.h>
 #include <time.h>
@@ -21,7 +20,7 @@ std::string Engine::tok(std::string s, std::string delim) {
 }
 
 void Engine::getCommand() {
-	getline(std::cin, currentCommand);
+	getline(std::cin, currentCommand);	
 	currentCommand.push_back(' ');
 }
 
@@ -85,12 +84,18 @@ void Engine::go() {
 	engineMove();
 }
 
-std::pair<Board::Move*, int> Engine::negamax(PIECE_COLOR playerColor, int depth, int alpha, int beta) {
-	if (depth == 0) {
-		return std::pair<Board::Move*, int>(nullptr, board.evaluate(playerColor));
+Board::MoveScore Engine::negamax(PIECE_COLOR playerColor, int depth, int alpha, int beta) {
+
+	if (board.hasBeenEvald(playerColor)) {
+		return board.getMove();
 	}
 
-	std::pair<Board::Move*, int> bestMove(nullptr, INT_MIN);
+	if (depth == 0) {
+		return Board::MoveScore(nullptr, board.evaluate(playerColor));
+	}
+
+
+	Board::MoveScore bestMove(nullptr, INT_MIN);
 	for (int i = 0; i < 6; i++) {
 		for (unsigned int j = 0; j < board.piecesVector[playerColor][i].size(); j++) {
 
@@ -105,52 +110,56 @@ std::pair<Board::Move*, int> Engine::negamax(PIECE_COLOR playerColor, int depth,
 					continue;
 				}
 
-				std::pair<Board::Move*, int> currentMove = negamax(((playerColor == WHITE) ? BLACK : WHITE), depth - 1, -beta, -alpha);
-				currentMove.second = -currentMove.second;
+				Board::MoveScore currentMove = negamax(((playerColor == WHITE) ? BLACK : WHITE), depth - 1, -beta, -alpha);
+				currentMove.score = -currentMove.score;
 			
-				currentMove.first = moves[k];
+				currentMove.move = moves[k];
 				//if (dynamic_cast<Board::EnPassant*>(moves[k]) != 0) {
 				//	currentMove.second += 200000;
 				//}
 
-				if (currentMove.second > alpha) {
-					alpha = currentMove.second;
+				if (currentMove.score > alpha) {
+					alpha = currentMove.score;
+					/*
 					bestMove.first = currentMove.first;
 					bestMove.second = alpha;
+					*/
+					bestMove = currentMove;
 				}
 
 				if (alpha >= beta) {
-					bestMove.second = beta;
+					bestMove.score = beta;
 					moves[k]->undo();
+					board.addToHash(bestMove, playerColor);
 					return bestMove;
 				}
 				moves[k]->undo();
 			}
 		}
 	}
-
+	if (bestMove.move != nullptr)
+		board.addToHash(bestMove, playerColor);
 	return bestMove;
 }
 
 void Engine::engineMove() {
 	Command command;
-	Board::Move *move;
 
 	if (!isForced) {
-		std::pair<Board::Move*, int> bestMove = negamax(engineColor, DEPTH, -200000, 200000);
+		Board::MoveScore bestMove = negamax(engineColor, DEPTH, -200000, 200000);
 
-		if (bestMove.second == INT_MIN) {
+		board.printHash();
+
+		if (bestMove.score == INT_MIN) {
 			sendCommand("resign");
 			return;
 		}
-		move = bestMove.first;
-
-		move->apply();
+		bestMove.move->apply();
 		//std::cout << "# " << ((CastlingPiece*)board.piecesVector[BLACK][KING][0])->moveCount << "rege\n";
 
 		//board.printBitboard(board.boardsVector[BLACK]);
 		//board.printPointerBoard(BLACK);
-		command = computeCommnandForWinboard(move->oldPosition, move->newPosition);
+		command = computeCommnandForWinboard(bestMove.move->oldPosition, bestMove.move->newPosition);
 
 		
 		colorToMove = (colorToMove == WHITE) ? BLACK : WHITE;

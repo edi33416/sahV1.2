@@ -11,7 +11,7 @@
 #include "utils.h"
 
 #define COMMAND_RESIGN "resign\n"
-#define DEPTH 2
+#define DEPTH 4
 
 #define not_found std::string::npos
 
@@ -33,7 +33,7 @@ private:
 	void processCommand(Command &command);
 	void engineMove();
 	void reset();
-	std::pair<Board::Move*, int> negamax(PIECE_COLOR playerColor, int depth, int alpha, int beta);
+	Board::MoveScore negamax(PIECE_COLOR playerColor, int depth, int alpha, int beta);
 
 	PIECE_COLOR engineColor;
 	PIECE_COLOR colorToMove;

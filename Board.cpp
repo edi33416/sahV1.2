@@ -2,6 +2,14 @@
 
 Board::Board() {
 
+	srand(1000);
+	for (int i = 1; i > -1; --i) {
+		for (int j = 0; j < 6; j++) {
+			for (int k = 0; k < 64; k++) {
+				pieceKeys[i][j][k] = rand() * rand();
+			}
+		}
+	}
 	Move::board = this;
 	nextStep[WHITE] = new BITBOARD[6]();
 	nextStep[BLACK] = new BITBOARD[6]();
@@ -592,7 +600,7 @@ std::vector<Board::Move*> Board::getPossiblePosition(Piece *piece) {
 	// DE              MODIFICIAITAET
 
 	if (piece->type == PAWNS) {
-		for (Position i = 0; i<64; i++) {
+		for (Position i = 0; possibleMoves != 0; i++) {
 			if ((mask & possibleMoves) == 1) {
 				if (isOnLastRow(i))
 					v.push_back(new PawnPromotion(piece, i, QUEEN));
@@ -606,7 +614,7 @@ std::vector<Board::Move*> Board::getPossiblePosition(Piece *piece) {
 		return v;
 	}
 
-	for (Position i=0; i<64; i++) {
+	for (Position i=0; possibleMoves != 0; i++) {
 		if ((mask & possibleMoves) == 1) {
 			v.push_back(new BasicMove(piece, i));
 		}
@@ -771,7 +779,7 @@ void Board::PawnPromotion::apply() {
 	board->removePiece(pawn);
 	board->piecesVector[pawn->color][newType].push_back(newPiece);
 	board->putOnBoard(newPiece);
-	delete pawn;
+	//delete pawn;
 }
 
 void Board::PawnPromotion::undo() {
@@ -783,7 +791,7 @@ void Board::PawnPromotion::undo() {
 		board->piecesVector[removed->color][removed->type].push_back(removed);
 		board->putOnBoard(removed);
 	}
-	delete newPiece;
+	//delete newPiece;
 
 	// Restoring old en passant
 	board->_EPpawn = oldEligableEnPassant;
@@ -858,18 +866,6 @@ void Board::removeFromBitboards(BITBOARD &bitboard, Position position) {
 
 	bitboard = bitboard & mask;
 	board = board & mask;
-}
-
-void Board::undoMove(Piece *piece, Position oldPosition) {
-
-	movePiece(piece, oldPosition);
-	if (!tempRemovedPieces.empty()) {
-
-		piece = tempRemovedPieces.back();
-		movePiece(piece, piece->currentPosition);
-		piecesVector[piece->color][piece->type].push_back(piece);
-		tempRemovedPieces.pop_back();
-	}
 }
 
 void Board::putOnBoard(Piece *piece) {
@@ -947,15 +943,78 @@ Piece* Board::movePiece(Piece *piece, Position newPosition) {
 	return removedPiece;
 }
 
-void Board::pawnPromotion(Piece *piece) {
-	Position currentPosition = piece->currentPosition;
-	removePiece(piece);
-	tempRemovedPieces.pop_back();
+ULL Board::calcBoardKey(PIECE_COLOR playerColor) {
+	ULL hashKey = 0;
 
-	Piece *queen = new Queen(currentPosition, piece->color);
-	delete piece;
-	piecesVector[queen->color][QUEEN].push_back(queen);
-	movePiece(queen, currentPosition);
+	if (playerColor == BLACK) {
+		for (int k = 0; k<2; ++k){
+			for (int i = 5; i > -1; --i) {
+				for (int j = 0; j < piecesVector[k][i].size(); j++) {
+					hashKey ^= pieceKeys[k][i][piecesVector[k][i][j]->currentPosition];
+				}
+			}
+		}
+		return hashKey;
+	}
+
+	for (int k = 0; k<2; ++k) {
+		for (int i = 5; i > -1; --i) {
+			for (int j = 0; j < piecesVector[k][i].size(); j++) {
+				hashKey ^= pieceKeys[k][i][63 - piecesVector[k][i][j]->currentPosition];
+			}
+		}
+	}
+
+	return hashKey;
+}
+
+void Board::addToHash(Board::MoveScore m, PIECE_COLOR playerColor) {
+	ULL hashKey = calcBoardKey(playerColor);
+	unsigned int buck = evalMap.bucket(hashKey);
+
+	if (playerColor == WHITE)
+		m.rotatePositions();
+
+	for (auto it = evalMap.begin(buck); it != evalMap.end(buck); ++it) {
+		if (it->second.stillUseful)
+			continue;
+		it->second = HashVal(m);
+		const_cast<ULL&>(it->first) = hashKey;
+		return;
+	}
+
+	evalMap.insert(std::pair<ULL, MoveScore>(hashKey, m));
+}
+
+bool Board::hasBeenEvald(PIECE_COLOR playerColor) {
+	ULL hashKey = calcBoardKey(playerColor);
+
+
+	auto it = evalMap.find(hashKey);
+
+	if (it == evalMap.end())
+		return false;
+
+	evaldMove = it->second.move;
+	it->second.stillUseful = true;
+	if (playerColor != evaldMove.playerColor) {
+		evaldMove.playerColor = playerColor;
+		evaldMove.rotatePositions();
+	}
+
+	return true;
+
+}
+
+void Board::printHash() {
+	for (auto& x : evalMap) {
+		std::cout << "#";
+		std::cout << x.first << " " << (int)x.second.move.move->oldPosition << " " <<(int) x.second.move.move->newPosition << " \n";
+	}
+}
+
+Board::MoveScore Board::getMove() {
+	return evaldMove;
 }
 
 void Board::printDebug() {
@@ -1056,8 +1115,8 @@ Board* Board::Move::board = 0;
 /* Piece square tables initialisation*/
 
 int Board::getPieceScore(Piece *p) {
-	/*
-	if (p->color == BLACK) {
+
+	/*if (p->color == BLACK) {
 		return pieceSquareTables[p->type][p->currentPosition];
 	}
 
