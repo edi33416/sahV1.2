@@ -947,23 +947,25 @@ ULL Board::calcBoardKey(PIECE_COLOR playerColor) {
 	ULL hashKey = 0;
 
 	if (playerColor == BLACK) {
-		for (int k = 0; k<2; ++k){
-			for (int i = 5; i > -1; --i) {
-				for (int j = 0; j < piecesVector[k][i].size(); j++) {
-					hashKey ^= pieceKeys[k][i][piecesVector[k][i][j]->currentPosition];
-				}
+		for (int i = 5; i > -1; --i) {
+			for (int j = 0; j < piecesVector[0][i].size(); j++) {
+				hashKey ^= pieceKeys[0][i][piecesVector[0][i][j]->currentPosition];
+			}
+			for (int j = 0; j < piecesVector[1][i].size(); j++) {
+				hashKey ^= pieceKeys[1][i][piecesVector[1][i][j]->currentPosition];
 			}
 		}
 		return hashKey;
 	}
 
-	for (int k = 0; k<2; ++k) {
 		for (int i = 5; i > -1; --i) {
-			for (int j = 0; j < piecesVector[k][i].size(); j++) {
-				hashKey ^= pieceKeys[k][i][63 - piecesVector[k][i][j]->currentPosition];
+			for (int j = 0; j < piecesVector[0][i].size(); j++) {
+				hashKey ^= pieceKeys[0][i][63 - piecesVector[0][i][j]->currentPosition];
+			}
+			for (int j = 0; j < piecesVector[1][i].size(); j++) {
+				hashKey ^= pieceKeys[1][i][63 - piecesVector[1][i][j]->currentPosition];
 			}
 		}
-	}
 
 	return hashKey;
 }
@@ -1052,62 +1054,117 @@ bool Board::isCheckMate(PIECE_COLOR playerColor) {
 
 // TODO
 int Board::evaluate(PIECE_COLOR playerColor) {
-		int s = 0;
-		int mobility[2] = { 0 };
-		int bonus[2] = { 0 };
+	int s = 0;
+	int mobility[2] = { 0 };
+	int bonus[2] = { 0 };
 
-		BITBOARD mask = 1;
+	BITBOARD mask = 1;
 
-		for (int i = 0; i < 64; i++) {
-			Piece* piece = pieceAt(i);
-			if (piece != nullptr) {
-				bonus[piece->color] += getPieceScore(piece);
-			}
-
-			mask = (1ULL) << i;
-			for (int pieceType = 0; pieceType < 6; pieceType++) {
-				if (mask & nextStep[WHITE][pieceType])
-					mobility[WHITE]++;
-				if (mask & nextStep[BLACK][pieceType])
-					mobility[BLACK]++;
-			}
+	for (int i = 0; i < 64; i++) {
+		Piece* piece = pieceAt(i);
+		if (piece != nullptr) {
+			bonus[piece->color] += getPieceScore(piece);
 		}
 
-		int mobilityScore = mobility[playerColor] * (mobility[playerColor] - mobility[otherColor(playerColor)]);
-		int bonusScore = (bonus[playerColor] - bonus[otherColor(playerColor)]); 
+		mask = (1ULL) << i;
+		for (int pieceType = 0; pieceType < 6; pieceType++) {
+			if (mask & nextStep[WHITE][pieceType])
+				mobility[WHITE]++;
+			if (mask & nextStep[BLACK][pieceType])
+				mobility[BLACK]++;
+		}
+	}
 
-		// Pawns
-		s += piecesVector[playerColor][0].size() * 100;
-		// Knigths
-		s += piecesVector[playerColor][1].size() * 320;
-		// Rooks
-		s += piecesVector[playerColor][2].size() * 500;
-		// Bishops
-		s += piecesVector[playerColor][3].size() * 330;
-		// King
-		s += piecesVector[playerColor][4].size() * 20000;
-		// Queen
-		s += piecesVector[playerColor][5].size() * 900;
+	int mobilityScore = mobility[playerColor] * (mobility[playerColor] - mobility[otherColor(playerColor)]);
+	int bonusScore = (bonus[playerColor] - bonus[otherColor(playerColor)]);
 
-		// Switch players color
-		playerColor = otherColor(playerColor);
+	// Pawns
+	s += piecesVector[playerColor][0].size() * 100;
+	// Knigths
+	s += piecesVector[playerColor][1].size() * 320;
+	// Rooks
+	s += piecesVector[playerColor][2].size() * 500;
+	// Bishops
+	s += piecesVector[playerColor][3].size() * 330;
+	// King
+	s += piecesVector[playerColor][4].size() * 0;
+	// Queen
+	s += piecesVector[playerColor][5].size() * 900;
 
-		// Pawns
-		s -= piecesVector[playerColor][0].size() * 100;
-		// Knigths
-		s -= piecesVector[playerColor][1].size() * 320;
-		// Rooks
-		s -= piecesVector[playerColor][2].size() * 500;
-		// Bishops
-		s -= piecesVector[playerColor][3].size() * 330;
-		// King
-		s -= piecesVector[playerColor][4].size() * 20000;
-		// Queen
-		s -= piecesVector[playerColor][5].size() * 900;
+	// Switch players color
+	playerColor = otherColor(playerColor);
 
-		s +=bonusScore;
+	// Pawns
+	s -= piecesVector[playerColor][0].size() * 100;
+	// Knigths
+	s -= piecesVector[playerColor][1].size() * 320;
+	// Rooks
+	s -= piecesVector[playerColor][2].size() * 500;
+	// Bishops
+	s -= piecesVector[playerColor][3].size() * 330;
+	// King
+	s -= piecesVector[playerColor][4].size() * 0;
+	// Queen
+	s -= piecesVector[playerColor][5].size() * 900;
 
-		return s;
+	s += bonusScore;
+
+	playerColor = otherColor(playerColor);
+
+	// King safety
+
+	std::vector<Position> kingsPosiblePositions[2];
+	Position kingsCurrentPosition[2] = { piecesVector[playerColor][4][0]->currentPosition,
+										 piecesVector[otherColor(playerColor)][4][0]->currentPosition
+									   };
+
+	kingsPosiblePositions[playerColor].push_back(kingsCurrentPosition[playerColor]);
+	kingsPosiblePositions[otherColor(playerColor)].push_back(kingsCurrentPosition[otherColor(playerColor)]);
+
+	int directions[8] = { 9,   8,   7,
+						  1,       -1,
+						 -7,  -8,  -9 };
+	for (int i = 0; i < 8; i++) {
+		Position tmp = kingsCurrentPosition[playerColor] + directions[i];
+		Position tmp2 = kingsCurrentPosition[otherColor(playerColor)] + directions[i];
+		if (tmp < 64 && tmp >= 0) {
+			kingsPosiblePositions[playerColor].push_back(tmp);
+		}
+		if (tmp2 < 64 && tmp2 >= 0) {
+			kingsPosiblePositions[otherColor(playerColor)].push_back(tmp2);
+		}
+	}
+
+	int encounterdAttacks[2] = { 0, 0 };
+	int valueOfAttack[6] = { 10, 20, 40, 20, 0, 80 };
+	int attackWeight[12] = { 0, 0, 50, 75, 88, 94, 97, 99,101,103,105,107};
+	int totalValueOfAttacks[2] = { 0, 0 };
+	 
+	for (auto i : kingsPosiblePositions[playerColor]) {
+		BITBOARD mask = 1;
+		for (int j = 5; j >= 0; j--) {
+			if ((nextStep[otherColor(playerColor)][j] & (mask << i))) {
+				encounterdAttacks[playerColor]++;
+				totalValueOfAttacks[playerColor] += valueOfAttack[j];
+			}
+		}
+	}
+
+	s -= (totalValueOfAttacks[playerColor] * attackWeight[encounterdAttacks[playerColor]]) / 100;
+
+	for (auto i : kingsPosiblePositions[otherColor(playerColor)]) {
+		BITBOARD mask = 1;
+		for (int j = 5; j >= 0; j--) {
+			if ((nextStep[playerColor][j] & (mask << i))) {
+				encounterdAttacks[otherColor(playerColor)]++;
+				totalValueOfAttacks[otherColor(playerColor)] += valueOfAttack[j];
+			}
+		}
+	}
+
+	s += (totalValueOfAttacks[otherColor(playerColor)] * attackWeight[encounterdAttacks[otherColor(playerColor)]]) / 100;
+
+	return s;
 }
 
 Board* Board::Move::board = 0;
@@ -1116,12 +1173,13 @@ Board* Board::Move::board = 0;
 
 int Board::getPieceScore(Piece *p) {
 
-	/*if (p->color == BLACK) {
-		return pieceSquareTables[p->type][p->currentPosition];
+	/*
+	if (p->color == BLACK) {
+		return pieceSquareTables[p->type][63 - p->currentPosition];
 	}
 
-	return pieceSquareTables[p->type][63 - p->currentPosition];
-	*/
+	return pieceSquareTables[p->type][p->currentPosition];
+*/
 	return 0;
 }
 

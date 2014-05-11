@@ -86,9 +86,11 @@ void Engine::go() {
 
 Board::MoveScore Engine::negamax(PIECE_COLOR playerColor, int depth, int alpha, int beta) {
 
+	/*
 	if (board.hasBeenEvald(playerColor)) {
 		return board.getMove();
 	}
+*/
 
 	if (depth == 0) {
 		return Board::MoveScore(nullptr, board.evaluate(playerColor));
@@ -114,16 +116,9 @@ Board::MoveScore Engine::negamax(PIECE_COLOR playerColor, int depth, int alpha, 
 				currentMove.score = -currentMove.score;
 			
 				currentMove.move = moves[k];
-				//if (dynamic_cast<Board::EnPassant*>(moves[k]) != 0) {
-				//	currentMove.second += 200000;
-				//}
 
 				if (currentMove.score > alpha) {
 					alpha = currentMove.score;
-					/*
-					bestMove.first = currentMove.first;
-					bestMove.second = alpha;
-					*/
 					bestMove = currentMove;
 				}
 
