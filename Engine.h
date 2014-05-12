@@ -22,6 +22,7 @@ typedef char Color;
 class Engine {
 private:
 
+	int evals;
 	std::string tok(std::string s, std::string delim);
 	Command currentCommand;
 	Color color;

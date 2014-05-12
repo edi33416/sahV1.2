@@ -130,6 +130,8 @@ void Board::init() {
 		nextStep[BLACK][KNIGHTS] |= piecesVector[BLACK][KNIGHTS][i]->getAllMoves();
 	}
 
+	updateNextMoves(PAWNS, BLACK);
+
 }
 
 
@@ -141,14 +143,21 @@ bool Board::isMovable(PIECE_TYPES pieceType, PIECE_COLOR pieceColor) {
 //DE MODIFICAT
 void Board::updateNextMoves(PIECE_TYPES pieceType, PIECE_COLOR pieceColor) {
 	int j;
-
-	for (j=0; j<6; j++) {
+	BITBOARD pieceMoves;
+	
+	
+	for (j=5; j >= 0; j--) {
 		nextStep[WHITE][j] = 0;
-		for (unsigned int i = 0; i < piecesVector[WHITE][j].size(); i++)
-			nextStep[WHITE][j] |= getPossibleMoves(piecesVector[WHITE][j][i]);
+		for (unsigned int i = 0; i < piecesVector[WHITE][j].size(); i++) {
+			pieceMoves = getPossibleMoves(piecesVector[WHITE][j][i]);
+			nextStep[WHITE][j] |= pieceMoves;
+		}
+		
 		nextStep[BLACK][j] = 0;
-		for (unsigned int i = 0; i < piecesVector[BLACK][j].size(); i++)
-			nextStep[BLACK][j] |= getPossibleMoves(piecesVector[BLACK][j][i]);
+		for (unsigned int i = 0; i < piecesVector[BLACK][j].size(); i++) {
+			pieceMoves = getPossibleMoves(piecesVector[BLACK][j][i]);
+			nextStep[BLACK][j] |= pieceMoves;
+		}
 	}
 }
 
@@ -592,9 +601,13 @@ BITBOARD Board::getPossibleMoves(Piece *piece) {
 
 std::vector<Board::Move*> Board::getPossiblePosition(Piece *piece) {
 	char mask = 1;
-	BITBOARD possibleMoves = getPossibleMoves(piece);
+	auto it = piecesMap.find(piece);
+	if (it == piecesMap.end())
+		std::cout << "Mare caca" << std::endl;
+	BITBOARD possibleMoves = piecesMap.find(piece)->second;
 	std::vector<Move*> v;
 
+	//printBitboard(possibleMoves);
 	possibleMoves = possibleMoves & (~(mask << piece->currentPosition));
 
 	// DE              MODIFICIAITAET
@@ -874,6 +887,8 @@ void Board::putOnBoard(Piece *piece) {
 	*(*allPieces + piece->currentPosition) = piece;
 	board = boardsVector[WHITE] | boardsVector[BLACK];
 	updateNextMoves(piece->type, piece->color);
+	recalcMoves(piece->currentPosition);
+
 }
 
 void Board::applyInputMove(Position oldPosition, Position newPosition, char lastChar) {
@@ -921,7 +936,7 @@ PIECE_TYPES Board::getPieceType(char c) {
 Piece* Board::movePiece(Piece *piece, Position newPosition) {
 	Piece *removedPiece = nullptr;
 	BITBOARD mask = 1;
-	
+
 	*(*allPieces + piece->currentPosition) = nullptr;
 	boardsVector[piece->color] = (boardsVector[piece->color] & (~(mask << piece->currentPosition)));
 
@@ -1085,7 +1100,7 @@ int Board::evaluate(PIECE_COLOR playerColor) {
 		// Bishops
 		s += piecesVector[playerColor][3].size() * 330;
 		// King
-		s += piecesVector[playerColor][4].size() * 20000;
+		s += piecesVector[playerColor][4].size() * 800;
 		// Queen
 		s += piecesVector[playerColor][5].size() * 900;
 
@@ -1101,7 +1116,7 @@ int Board::evaluate(PIECE_COLOR playerColor) {
 		// Bishops
 		s -= piecesVector[playerColor][3].size() * 330;
 		// King
-		s -= piecesVector[playerColor][4].size() * 20000;
+		s -= piecesVector[playerColor][4].size() * 800;
 		// Queen
 		s -= piecesVector[playerColor][5].size() * 900;
 
@@ -1123,6 +1138,50 @@ int Board::getPieceScore(Piece *p) {
 	return pieceSquareTables[p->type][63 - p->currentPosition];
 	*/
 	return 0;
+}
+
+std::vector<Board::Move*> Board::ownColorDepend(Piece *piece) {
+
+}
+
+void Board::setDependences(Piece *piece) {
+	std::vector<Move*>& v = movesMap.find(piece)->second;
+
+	for (int i = 0; i < v.size(); i++) {
+		dependentPieces[v[i]->newPosition].push_back(piece);
+	}
+
+	//own color dependecies
+	BITBOARD empty, result, mask = 1;
+	char m = 1;
+
+	if (piece->type == PAWNS) {
+		empty = ~board;
+		Pawn *pawn = (Pawn*)piece;
+
+		result = ((pawn->getForwardMoves() ^ board) & (empty)) | ((pawn->getAttackMoves() ^ boardsVector[pawn->color]));
+		if (pawn->isOnStartingPosition()) {
+			mask = mask << (pawn->currentPosition + (-1) * ((-2) * pawn->color + 1) * 8);
+			result = result & (~pawn->getForwardMoves());
+		}
+
+		for (Position i = 0; result != 0; i++){
+			if (m & result)
+				dependentPieces[i].push_back(piece);
+		}
+	}
+
+	else {
+		piece->color = otherColor(piece->color);
+		result = getPossibleMoves(piece);
+		piece->color = otherColor(piece->color);
+	}
+
+	for (Position i = 0; result != 0; i++) {
+		if ((m & result) && (i & boardsVector[piece->color])) {
+			dependentPieces[i].push_back(piece);
+		}
+	}
 }
 
 const short int Board::pieceSquareTables[7][64] = {

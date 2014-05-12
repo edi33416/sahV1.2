@@ -86,10 +86,11 @@ void Engine::go() {
 
 Board::MoveScore Engine::negamax(PIECE_COLOR playerColor, int depth, int alpha, int beta) {
 
-	if (board.hasBeenEvald(playerColor)) {
+	/*if (board.hasBeenEvald(playerColor)) {
+		evals++;
 		return board.getMove();
 	}
-
+	*/
 	if (depth == 0) {
 		return Board::MoveScore(nullptr, board.evaluate(playerColor));
 	}
@@ -109,7 +110,7 @@ Board::MoveScore Engine::negamax(PIECE_COLOR playerColor, int depth, int alpha, 
 					moves[k]->undo();
 					continue;
 				}
-
+				
 				Board::MoveScore currentMove = negamax(((playerColor == WHITE) ? BLACK : WHITE), depth - 1, -beta, -alpha);
 				currentMove.score = -currentMove.score;
 			
@@ -130,25 +131,26 @@ Board::MoveScore Engine::negamax(PIECE_COLOR playerColor, int depth, int alpha, 
 				if (alpha >= beta) {
 					bestMove.score = beta;
 					moves[k]->undo();
-					board.addToHash(bestMove, playerColor);
+					//board.addToHash(bestMove, playerColor);
 					return bestMove;
 				}
 				moves[k]->undo();
 			}
 		}
 	}
-	if (bestMove.move != nullptr)
-		board.addToHash(bestMove, playerColor);
+	//if (bestMove.move != nullptr)
+		//board.addToHash(bestMove, playerColor);
 	return bestMove;
 }
 
 void Engine::engineMove() {
 	Command command;
 
+	evals = 0;
 	if (!isForced) {
 		Board::MoveScore bestMove = negamax(engineColor, DEPTH, -200000, 200000);
 
-		board.printHash();
+		//board.printHash();
 
 		if (bestMove.score == INT_MIN) {
 			sendCommand("resign");
@@ -166,7 +168,7 @@ void Engine::engineMove() {
 		//board.printBitboard(board.boardsVector[WHITE]);
 		//board.printPointerBoard(WHITE);
 		sendCommand(command);
-
+		std::cout << "#" << evals << "\n";
 	}
 }
 

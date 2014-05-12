@@ -109,6 +109,7 @@ public:
 			score = s;
 		}
 		void rotatePositions() {
+
 			move->oldPosition = 63 - move->oldPosition;
 			move->newPosition = 63 - move->newPosition;
 		}
@@ -131,6 +132,7 @@ public:
 	void printDebug();
 	//TODO PRIVATE
 	void printPointerBoard(PIECE_COLOR);
+	std::unordered_map<Piece*, BITBOARD> piecesMap;
 
 	void init();
 	void erase();
