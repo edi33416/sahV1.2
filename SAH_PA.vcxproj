@@ -84,7 +84,6 @@
     <ClInclude Include="Bitboard.h" />
     <ClInclude Include="Board.h" />
     <ClInclude Include="CastlingPiece.h" />
-    <ClInclude Include="directions.h" />
     <ClInclude Include="Engine.h" />
     <ClInclude Include="King.h" />
     <ClInclude Include="Knight.h" />

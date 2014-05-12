@@ -141,7 +141,7 @@ bool Board::isMovable(PIECE_TYPES pieceType, PIECE_COLOR pieceColor) {
 //DE MODIFICAT
 void Board::updateNextMoves(PIECE_TYPES pieceType, PIECE_COLOR pieceColor) {
 	int j;
-
+	/*
 	for (j=0; j<6; j++) {
 		nextStep[WHITE][j] = 0;
 		for (unsigned int i = 0; i < piecesVector[WHITE][j].size(); i++)
@@ -150,6 +150,7 @@ void Board::updateNextMoves(PIECE_TYPES pieceType, PIECE_COLOR pieceColor) {
 		for (unsigned int i = 0; i < piecesVector[BLACK][j].size(); i++)
 			nextStep[BLACK][j] |= getPossibleMoves(piecesVector[BLACK][j][i]);
 	}
+	*/
 }
 
 void Board::printBitboard(BITBOARD boardToPrint) {
@@ -1104,8 +1105,8 @@ int Board::evaluate(PIECE_COLOR playerColor) {
 		s -= piecesVector[playerColor][4].size() * 20000;
 		// Queen
 		s -= piecesVector[playerColor][5].size() * 900;
-
 		s +=bonusScore;
+
 
 		return s;
 }
@@ -1116,12 +1117,12 @@ Board* Board::Move::board = 0;
 
 int Board::getPieceScore(Piece *p) {
 
-	/*if (p->color == BLACK) {
-		return pieceSquareTables[p->type][p->currentPosition];
+	if (p->color == BLACK) {
+		return pieceSquareTables[p->type][63 - p->currentPosition];
 	}
 
-	return pieceSquareTables[p->type][63 - p->currentPosition];
-	*/
+	return pieceSquareTables[p->type][p->currentPosition];
+	
 	return 0;
 }
 

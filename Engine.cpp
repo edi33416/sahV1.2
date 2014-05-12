@@ -85,10 +85,10 @@ void Engine::go() {
 }
 
 Board::MoveScore Engine::negamax(PIECE_COLOR playerColor, int depth, int alpha, int beta) {
-
+	/*
 	if (board.hasBeenEvald(playerColor)) {
 		return board.getMove();
-	}
+	}*/
 
 	if (depth == 0) {
 		return Board::MoveScore(nullptr, board.evaluate(playerColor));
@@ -227,16 +227,11 @@ void Engine::mainLoop() {
 
 		if (currentCommand.find("usermove") != not_found) {
 
-			//update board with user's new move
 			currentCommand = currentCommand.substr(9, 14);  //POZITII
 			processCommand(currentCommand);
 			oldPosition = 7 - (currentCommand[0] - 'a') + (currentCommand[1] - '1') * 8;
 			newPosition = 7 - (currentCommand[2] - 'a') + (currentCommand[3] - '1') * 8;
-			/*
-			board.movePiece(*(*board.allPieces + oldPosition), newPosition);
 
-
-			*/
 			board.applyInputMove(oldPosition, newPosition, currentCommand[4]);
 			colorToMove = (colorToMove == BLACK) ? WHITE : BLACK;
 		}
