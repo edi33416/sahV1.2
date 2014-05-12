@@ -85,15 +85,14 @@ void Engine::go() {
 }
 
 Board::MoveScore Engine::negamax(PIECE_COLOR playerColor, int depth, int alpha, int beta) {
-	/*
+
 	if (board.hasBeenEvald(playerColor)) {
 		return board.getMove();
-	}*/
+	}
 
 	if (depth == 0) {
 		return Board::MoveScore(nullptr, board.evaluate(playerColor));
 	}
-
 
 	Board::MoveScore bestMove(nullptr, INT_MIN);
 	for (int i = 0; i < 6; i++) {
@@ -113,17 +112,10 @@ Board::MoveScore Engine::negamax(PIECE_COLOR playerColor, int depth, int alpha, 
 				Board::MoveScore currentMove = negamax(((playerColor == WHITE) ? BLACK : WHITE), depth - 1, -beta, -alpha);
 				currentMove.score = -currentMove.score;
 			
-				currentMove.move = moves[k];
-				//if (dynamic_cast<Board::EnPassant*>(moves[k]) != 0) {
-				//	currentMove.second += 200000;
-				//}
+				currentMove.move = moves[k]->copy();
 
 				if (currentMove.score > alpha) {
 					alpha = currentMove.score;
-					/*
-					bestMove.first = currentMove.first;
-					bestMove.second = alpha;
-					*/
 					bestMove = currentMove;
 				}
 
@@ -148,7 +140,7 @@ void Engine::engineMove() {
 	if (!isForced) {
 		Board::MoveScore bestMove = negamax(engineColor, DEPTH, -200000, 200000);
 
-		board.printHash();
+		//board.printHash();
 
 		if (bestMove.score == INT_MIN) {
 			sendCommand("resign");
