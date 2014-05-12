@@ -1,5 +1,14 @@
 #include "Board.h"
 
+
+const int Board::valueOfAttack[6] = { 10, 20, 40, 20, 0, 80 };
+const int Board::attackWeight[12] = { 0, 0, 50, 75, 88, 94, 97, 99, 101, 103, 105, 107 };
+
+const int Board::directions[8] = { 9, 8, 7,
+									1, -1,
+								-7, -8, -9 };
+const int Board::materialScores[6] = { 100, 320, 500, 330, 0, 900 };
+
 Board::Board() {
 
 	srand(1000);
@@ -129,6 +138,36 @@ void Board::init() {
 		nextStep[WHITE][KNIGHTS] |= piecesVector[WHITE][KNIGHTS][i]->getAllMoves();
 		nextStep[BLACK][KNIGHTS] |= piecesVector[BLACK][KNIGHTS][i]->getAllMoves();
 	}
+
+	
+	// Pawns
+	material[BLACK] = piecesVector[BLACK][0].size() * 100;
+	// Knigths
+	material[BLACK] += piecesVector[BLACK][1].size() * 320;
+	// Rooks
+	material[BLACK] += piecesVector[BLACK][2].size() * 500;
+	// Bishops
+	material[BLACK] += piecesVector[BLACK][3].size() * 330;
+	// King
+	material[BLACK] += piecesVector[BLACK][4].size() * 0;
+	// Queen
+	material[BLACK] += piecesVector[BLACK][5].size() * 900;
+
+	// Switch players color
+
+	// Pawns
+	material[WHITE] = piecesVector[WHITE][0].size() * 100;
+	// Knigths
+	material[WHITE] += piecesVector[WHITE][1].size() * 320;
+	// Rooks
+	material[WHITE] += piecesVector[WHITE][2].size() * 500;
+	// Bishops
+	material[WHITE] += piecesVector[WHITE][3].size() * 330;
+	// King
+	material[WHITE] += piecesVector[WHITE][4].size() * 0;
+	// Queen
+	material[WHITE] += piecesVector[WHITE][5].size() * 900;
+
 
 }
 
@@ -667,6 +706,7 @@ void Board::BasicMove::undo() {
 	if (piece2 != nullptr) {
 		board->piecesVector[piece2->color][piece2->type].push_back(piece2);
 		board->putOnBoard(piece2);
+		board->material[piece2->color] += materialScores[piece2->type];
 	}
 
 	// Restoring old en passant
@@ -808,6 +848,7 @@ void Board::PawnPromotion::apply() {
 	board->removePiece(pawn);
 	board->piecesVector[pawn->color][newType].push_back(newPiece);
 	board->putOnBoard(newPiece);
+	board->material[newPiece->color] += materialScores[newPiece->type];
 	//delete pawn;
 }
 
@@ -819,6 +860,7 @@ void Board::PawnPromotion::undo() {
 	if (removed != nullptr) {
 		board->piecesVector[removed->color][removed->type].push_back(removed);
 		board->putOnBoard(removed);
+		board->material[removed->color] += materialScores[removed->type];
 	}
 	//delete newPiece;
 
@@ -868,6 +910,7 @@ void Board::EnPassant::undo() {
 	board->movePiece(pawn, oldPosition);
 	board->piecesVector[removed->color][removed->type].push_back(removed);
 	board->putOnBoard(removed);
+	board->material[removed->color] += materialScores[removed->type];
 
 	// Restoring old en passant
 	board->_EPpawn = oldEligableEnPassant;
@@ -901,8 +944,6 @@ Piece* Board::createPiece(PIECE_TYPES type, Piece *oldPiece) {
 }
 
 void Board::removePiece(Piece *piece) {
-	//Piece *piece = *(*(allPieces) + position);
-
 	tempRemovedPieces.push_back(piece);
 
 	*(*(allPieces) + piece->currentPosition) = nullptr;
@@ -914,6 +955,7 @@ void Board::removePiece(Piece *piece) {
 			break;
 		}
 	}
+	material[piece->color] -= materialScores[piece->type];
 	updateNextMoves(piece->type, piece->color);
 }
 
@@ -1107,6 +1149,7 @@ int Board::evaluate(PIECE_COLOR playerColor) {
 	int s = 0;
 	int mobility[2] = { 0 };
 	int bonus[2] = { 0 };
+	PIECE_COLOR otherPlayerColor = otherColor(playerColor);
 
 	BITBOARD mask = 1;
 
@@ -1125,95 +1168,63 @@ int Board::evaluate(PIECE_COLOR playerColor) {
 		}
 	}
 
-	int mobilityScore = mobility[playerColor] * (mobility[playerColor] - mobility[otherColor(playerColor)]);
-	int bonusScore = (bonus[playerColor] - bonus[otherColor(playerColor)]);
+	int mobilityScore = mobility[playerColor] * (mobility[playerColor] - mobility[otherPlayerColor]);
+	int bonusScore = (bonus[playerColor] - bonus[otherPlayerColor]);
 
-	// Pawns
-	s += piecesVector[playerColor][0].size() * 100;
-	// Knigths
-	s += piecesVector[playerColor][1].size() * 320;
-	// Rooks
-	s += piecesVector[playerColor][2].size() * 500;
-	// Bishops
-	s += piecesVector[playerColor][3].size() * 330;
-	// King
-	s += piecesVector[playerColor][4].size() * 0;
-	// Queen
-	s += piecesVector[playerColor][5].size() * 900;
-
-	// Switch players color
-	playerColor = otherColor(playerColor);
-
-	// Pawns
-	s -= piecesVector[playerColor][0].size() * 100;
-	// Knigths
-	s -= piecesVector[playerColor][1].size() * 320;
-	// Rooks
-	s -= piecesVector[playerColor][2].size() * 500;
-	// Bishops
-	s -= piecesVector[playerColor][3].size() * 330;
-	// King
-	s -= piecesVector[playerColor][4].size() * 0;
-	// Queen
-	s -= piecesVector[playerColor][5].size() * 900;
+	
 
 	s += bonusScore;
-
-	playerColor = otherColor(playerColor);
 
 	// King safety
 
 	std::vector<Position> kingsPosiblePositions[2];
 	Position kingsCurrentPosition[2] = { piecesVector[playerColor][4][0]->currentPosition,
-										 piecesVector[otherColor(playerColor)][4][0]->currentPosition
+										 piecesVector[otherPlayerColor][4][0]->currentPosition
 									   };
 
 	kingsPosiblePositions[playerColor].push_back(kingsCurrentPosition[playerColor]);
-	kingsPosiblePositions[otherColor(playerColor)].push_back(kingsCurrentPosition[otherColor(playerColor)]);
+	kingsPosiblePositions[otherPlayerColor].push_back(kingsCurrentPosition[otherPlayerColor]);
 
-	int directions[8] = { 9,   8,   7,
-						  1,       -1,
-						 -7,  -8,  -9 };
 	for (int i = 0; i < 8; i++) {
 		Position tmp = kingsCurrentPosition[playerColor] + directions[i];
-		Position tmp2 = kingsCurrentPosition[otherColor(playerColor)] + directions[i];
+		Position tmp2 = kingsCurrentPosition[otherPlayerColor] + directions[i];
 		if (tmp < 64 && tmp >= 0) {
 			kingsPosiblePositions[playerColor].push_back(tmp);
 		}
 		if (tmp2 < 64 && tmp2 >= 0) {
-			kingsPosiblePositions[otherColor(playerColor)].push_back(tmp2);
+			kingsPosiblePositions[otherPlayerColor].push_back(tmp2);
 		}
 	}
 
 	int encounterdAttacks[2] = { 0, 0 };
-	int valueOfAttack[6] = { 10, 20, 40, 20, 0, 80 };
-	int attackWeight[12] = { 0, 0, 50, 75, 88, 94, 97, 99,101,103,105,107};
+
 	int totalValueOfAttacks[2] = { 0, 0 };
 	 
 	for (auto i : kingsPosiblePositions[playerColor]) {
 		BITBOARD mask = 1;
 		for (int j = 5; j >= 0; j--) {
-			if ((nextStep[otherColor(playerColor)][j] & (mask << i))) {
+			if ((nextStep[otherPlayerColor][j] & (mask << i))) {
 				encounterdAttacks[playerColor]++;
 				totalValueOfAttacks[playerColor] += valueOfAttack[j];
 			}
 		}
 	}
 
-	s -= (totalValueOfAttacks[playerColor] * attackWeight[encounterdAttacks[playerColor]]) / 100;
+	s -= ((totalValueOfAttacks[playerColor] * attackWeight[encounterdAttacks[playerColor]]) / 100);
 
-	for (auto i : kingsPosiblePositions[otherColor(playerColor)]) {
+	for (auto i : kingsPosiblePositions[otherPlayerColor]) {
 		BITBOARD mask = 1;
 		for (int j = 5; j >= 0; j--) {
 			if ((nextStep[playerColor][j] & (mask << i))) {
-				encounterdAttacks[otherColor(playerColor)]++;
-				totalValueOfAttacks[otherColor(playerColor)] += valueOfAttack[j];
+				encounterdAttacks[otherPlayerColor]++;
+				totalValueOfAttacks[otherPlayerColor] += valueOfAttack[j];
 			}
 		}
 	}
 
-	s += (totalValueOfAttacks[otherColor(playerColor)] * attackWeight[encounterdAttacks[otherColor(playerColor)]]) / 100;
+	s += ((totalValueOfAttacks[otherPlayerColor] * attackWeight[encounterdAttacks[otherPlayerColor]]) / 100);
 
+	s +=  material[playerColor] - material[otherColor(playerColor)];
 	return s;
 }
 
@@ -1240,7 +1251,7 @@ const short int Board::pieceSquareTables[7][64] = {
 	5, 5, 10, 25, 25, 10, 5, 5,
 	10, 10, 20, 30, 30, 20, 10, 10,
 	50, 50, 50, 50, 50, 50, 50, 50,
-	0, 0, 0, 0, 0, 0, 0, 0
+	300, 300, 300, 300, 300, 300, 300, 300
 	},
 
 	// Knights
