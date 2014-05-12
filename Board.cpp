@@ -601,10 +601,11 @@ BITBOARD Board::getPossibleMoves(Piece *piece) {
 
 std::vector<Board::Move*> Board::getPossiblePosition(Piece *piece) {
 	char mask = 1;
-	auto it = piecesMap.find(piece);
-	if (it == piecesMap.end())
-		std::cout << "Mare caca" << std::endl;
-	BITBOARD possibleMoves = piecesMap.find(piece)->second;
+	//auto it = piecesMap.find(piece);
+	//if (it == piecesMap.end())
+		//std::cout << "Mare caca" << std::endl;
+	BITBOARD possibleMoves = getPossibleMoves(piece);
+		//= piecesMap.find(piece)->second;
 	std::vector<Move*> v;
 
 	//printBitboard(possibleMoves);
@@ -1141,8 +1142,11 @@ int Board::getPieceScore(Piece *p) {
 }
 
 std::vector<Board::Move*> Board::ownColorDepend(Piece *piece) {
-
+	std::vector<Move*> v;
+	return v;
 }
+
+void Board::recalcMoves(Position p) {}
 
 void Board::setDependences(Piece *piece) {
 	std::vector<Move*>& v = movesMap.find(piece)->second;

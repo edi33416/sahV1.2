@@ -132,7 +132,7 @@ public:
 	void printDebug();
 	//TODO PRIVATE
 	void printPointerBoard(PIECE_COLOR);
-	std::unordered_map<Piece*, BITBOARD> piecesMap;
+	std::unordered_map<Piece*, std::vector<Move*> > movesMap;
 
 	void init();
 	void erase();
@@ -194,6 +194,10 @@ private:
 	ULL calcBoardKey(PIECE_COLOR playerColor);
 	//void saveMove(HashVal v);
 
+	void recalcMoves(Position position);
+	std::vector<Piece*> dependentPieces[64];
+	void setDependences(Piece *piece);
+	std::vector<Move*> ownColorDepend(Piece *piece);
 };
 
 #endif
