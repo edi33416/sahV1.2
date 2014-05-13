@@ -618,8 +618,6 @@ std::vector<Board::Move*> Board::getPossiblePosition(Piece *piece) {
 
 	possibleMoves = possibleMoves & (~(mask << piece->currentPosition));
 
-	// DE              MODIFICIAITAET
-
 	if (piece->type == PAWNS) {
 		for (Position i = 0; possibleMoves != 0; i++) {
 			if ((mask & possibleMoves) == 1) {
@@ -1135,8 +1133,8 @@ bool Board::isCheckMate(PIECE_COLOR playerColor) {
 // TODO
 int Board::evaluate(PIECE_COLOR playerColor) {
 	int s = 0;
-	int mobility[2] = { 0 };
-	int bonus[2] = { 0 };
+	int mobility[2] = { 0, 0 };
+	int bonus[2] = { 0, 0 };
 	PIECE_COLOR otherPlayerColor = otherColor(playerColor);
 
 	BITBOARD mask = 1;
@@ -1160,7 +1158,7 @@ int Board::evaluate(PIECE_COLOR playerColor) {
 	int bonusScore = (bonus[playerColor] - bonus[otherPlayerColor]);
 	
 	s += bonusScore;
-	s +=  material[playerColor] - material[otherColor(playerColor)];
+	s += material[playerColor] - material[otherPlayerColor];
 	s += mobilityScore;
 	
 	// King safety
@@ -1187,7 +1185,6 @@ int Board::evaluate(PIECE_COLOR playerColor) {
 	}
 
 	int encounterdAttacks[2] = { 0, 0 };
-
 	int totalValueOfAttacks[2] = { 0, 0 };
 
 	for (auto i : kingsPosiblePositions[playerColor]) {

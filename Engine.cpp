@@ -94,12 +94,12 @@ Board::MoveScore Engine::negamax(PIECE_COLOR playerColor, int depth, int alpha, 
 	}
 
 	Board::MoveScore bestMove(nullptr, INT_MIN);
-	for (int i = 5; i >= 0; i--) {
-		for (unsigned int j = 0; j < board.piecesVector[playerColor][i].size(); j++) {
+	for (int i = 0; i < 6; i++) {
+		for (unsigned int j = board.piecesVector[playerColor][i].size() - 1; j >= 0; j--) {
 
 			std::vector<Board::Move*> moves = board.getPossiblePosition(board.piecesVector[playerColor][i][j]);
 
-			for (unsigned int k = 0; k < moves.size(); k++) {
+			for (unsigned int k = moves.size() - 1; k >= 0; k--) {
 
 				moves[k]->apply();
 
