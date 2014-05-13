@@ -1175,6 +1175,11 @@ int Board::evaluate(PIECE_COLOR playerColor) {
 
 	s += ((totalValueOfAttacks[otherPlayerColor] * attackWeight[encounterdAttacks[otherPlayerColor]]) / 100);
 	
+	if (piecesVector[playerColor][BISHOPS].size() == 1)
+		s -= 50;
+	if (piecesVector[otherPlayerColor][BISHOPS].size() == 1)
+		s += 50;
+
 	return s;
 }
 

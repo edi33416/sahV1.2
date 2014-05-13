@@ -11,7 +11,7 @@
 #include "utils.h"
 
 #define COMMAND_RESIGN "resign\n"
-#define DEPTH 4
+#define DEPTH 2
 
 #define not_found std::string::npos
 

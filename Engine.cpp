@@ -85,10 +85,10 @@ void Engine::go() {
 }
 
 Board::MoveScore Engine::negamax(PIECE_COLOR playerColor, int depth, int alpha, int beta) {
-	if (board.hasBeenEvald(playerColor)) {
+	/*if (board.hasBeenEvald(playerColor)) {
 		evals++;
 		return board.getMove();
-	}
+	}*/
 	if (depth == 0) {
 		return Board::MoveScore(nullptr, board.evaluate(playerColor));
 	}
@@ -136,8 +136,8 @@ Board::MoveScore Engine::negamax(PIECE_COLOR playerColor, int depth, int alpha, 
 			}
 		}
 	}
-	if (bestMove.move != nullptr)
-		board.addToHash(bestMove, playerColor);
+	//if (bestMove.move != nullptr)
+		//board.addToHash(bestMove, playerColor);
 	return bestMove;
 }
 
