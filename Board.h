@@ -120,9 +120,6 @@ public:
 		}
 		MoveScore() {}
 
-		/*void apply() {
-			move->apply();
-		}*/
 	};
 
 

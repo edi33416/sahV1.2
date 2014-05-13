@@ -15,8 +15,6 @@
 
 #define not_found std::string::npos
 
-//using namespace std;
-
 typedef char Color;
 
 class Engine {

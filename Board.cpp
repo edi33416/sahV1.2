@@ -608,19 +608,7 @@ BITBOARD Board::getPossibleMoves(Piece *piece) {
 	}
 	}
 
-	//mai este nevoie?
-	/*
-	possibleMoves = possibleMoves & (~(mask << piece->currentPosition));
-
-	for (Position i = 0; i<64; i++) {
-		if ((mask & possibleMoves) == 1) {
-			//return i;
-			results.push_back(new BasicMove(piece, i));
-		}
-		possibleMoves = possibleMoves >> 1;
-	}
-	return results;
-	*/
+	
 }
 
 std::vector<Board::Move*> Board::getPossiblePosition(Piece *piece) {
@@ -1153,14 +1141,14 @@ int Board::evaluate(PIECE_COLOR playerColor) {
 
 	BITBOARD mask = 1;
 
-	for (int i = 0; i < 64; i++) {
+	for (int i = 63; i >= 0; i--) {
 		Piece* piece = pieceAt(i);
 		if (piece != nullptr) {
 			bonus[piece->color] += getPieceScore(piece);
 		}
 
 		mask = (1ULL) << i;
-		for (int pieceType = 0; pieceType < 6; pieceType++) {
+		for (int pieceType = 5; pieceType >= 0; pieceType--) {
 			if (mask & nextStep[WHITE][pieceType])
 				mobility[WHITE]++;
 			if (mask & nextStep[BLACK][pieceType])
@@ -1170,22 +1158,24 @@ int Board::evaluate(PIECE_COLOR playerColor) {
 
 	int mobilityScore = mobility[playerColor] * (mobility[playerColor] - mobility[otherPlayerColor]);
 	int bonusScore = (bonus[playerColor] - bonus[otherPlayerColor]);
-
 	
-
 	s += bonusScore;
-
+	s +=  material[playerColor] - material[otherColor(playerColor)];
+	s += mobilityScore;
+	
 	// King safety
+	if (piecesVector[playerColor][4].size() == 0 || piecesVector[otherPlayerColor][4].size() == 0)
+		return s;
 
 	std::vector<Position> kingsPosiblePositions[2];
 	Position kingsCurrentPosition[2] = { piecesVector[playerColor][4][0]->currentPosition,
-										 piecesVector[otherPlayerColor][4][0]->currentPosition
-									   };
+		piecesVector[otherPlayerColor][4][0]->currentPosition
+	};
 
 	kingsPosiblePositions[playerColor].push_back(kingsCurrentPosition[playerColor]);
 	kingsPosiblePositions[otherPlayerColor].push_back(kingsCurrentPosition[otherPlayerColor]);
 
-	for (int i = 0; i < 8; i++) {
+	for (int i = 7; i >= 0; i--) {
 		Position tmp = kingsCurrentPosition[playerColor] + directions[i];
 		Position tmp2 = kingsCurrentPosition[otherPlayerColor] + directions[i];
 		if (tmp < 64 && tmp >= 0) {
@@ -1199,7 +1189,7 @@ int Board::evaluate(PIECE_COLOR playerColor) {
 	int encounterdAttacks[2] = { 0, 0 };
 
 	int totalValueOfAttacks[2] = { 0, 0 };
-	 
+
 	for (auto i : kingsPosiblePositions[playerColor]) {
 		BITBOARD mask = 1;
 		for (int j = 5; j >= 0; j--) {
@@ -1223,8 +1213,7 @@ int Board::evaluate(PIECE_COLOR playerColor) {
 	}
 
 	s += ((totalValueOfAttacks[otherPlayerColor] * attackWeight[encounterdAttacks[otherPlayerColor]]) / 100);
-
-	s +=  material[playerColor] - material[otherColor(playerColor)];
+	
 	return s;
 }
 
