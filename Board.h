@@ -36,7 +36,6 @@ public:
 		Move() {};
 		virtual void undo() = 0;
 		virtual void apply() = 0;
-		virtual Move* copy() = 0;
 		Piece *oldEligableEnPassant = nullptr;
 	};
 
@@ -49,7 +48,6 @@ public:
 		BasicMove(Piece *p1, Position newPosition);
 		virtual void apply();
 		virtual void undo();
-		BasicMove* copy();
 		void set(Piece *piece, Position newPosition);
 	};
 
@@ -65,7 +63,6 @@ public:
 		void set(King *k, Rook *r);
 		void apply();
 		void undo();
-		CastlingMove* copy();
 	};
 
 	class PawnPromotion : public Move {
@@ -78,7 +75,6 @@ public:
 		void set(Piece *p, Position newPosition, PIECE_TYPES newType);
 		void apply();
 		void undo();
-		PawnPromotion* copy();
 	};
 
 	class PawnMove : public BasicMove {
@@ -89,7 +85,6 @@ public:
 		PawnMove(Piece *p1, Position newPosition) : BasicMove(p1, newPosition){}
 		void apply();
 		void undo();
-		PawnMove* copy();
 	};
 
 	class EnPassant : public Move {
@@ -103,7 +98,6 @@ public:
 		void set(Piece *p, Piece *removed);
 		void apply();
 		void undo();
-		EnPassant* copy();
 	};
 
 	typedef struct MoveScore {
@@ -115,6 +109,7 @@ public:
 			score = s;
 		}
 		void rotatePositions() {
+
 			move->oldPosition = 63 - move->oldPosition;
 			move->newPosition = 63 - move->newPosition;
 		}
@@ -134,6 +129,7 @@ public:
 	void printDebug();
 	//TODO PRIVATE
 	void printPointerBoard(PIECE_COLOR);
+	std::unordered_map<Piece*, std::vector<Move*> > movesMap;
 
 	void init();
 	void erase();
@@ -201,6 +197,10 @@ private:
 	ULL calcBoardKey(PIECE_COLOR playerColor);
 	//void saveMove(HashVal v);
 
+	void recalcMoves(Position position);
+	std::vector<Piece*> dependentPieces[64];
+	void setDependences(Piece *piece);
+	//std::vector<Move*> ownColorDepend(Piece *piece);
 };
 
 #endif

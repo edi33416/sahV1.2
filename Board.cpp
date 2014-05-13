@@ -139,6 +139,7 @@ void Board::init() {
 		nextStep[BLACK][KNIGHTS] |= piecesVector[BLACK][KNIGHTS][i]->getAllMoves();
 	}
 
+	//updateNextMoves(PAWNS, BLACK);
 	
 	// Pawns
 	material[BLACK] = piecesVector[BLACK][0].size() * 100;
@@ -180,13 +181,21 @@ bool Board::isMovable(PIECE_TYPES pieceType, PIECE_COLOR pieceColor) {
 //DE MODIFICAT
 void Board::updateNextMoves(PIECE_TYPES pieceType, PIECE_COLOR pieceColor) {
 	int j;
-	for (j=0; j<6; j++) {
+	BITBOARD pieceMoves;
+	
+	
+	for (j=5; j >= 0; j--) {
 		nextStep[WHITE][j] = 0;
-		for (unsigned int i = 0; i < piecesVector[WHITE][j].size(); i++)
-			nextStep[WHITE][j] |= getPossibleMoves(piecesVector[WHITE][j][i]);
+		for (unsigned int i = 0; i < piecesVector[WHITE][j].size(); i++) {
+			pieceMoves = getPossibleMoves(piecesVector[WHITE][j][i]);
+			nextStep[WHITE][j] |= pieceMoves;
+		}
+		
 		nextStep[BLACK][j] = 0;
-		for (unsigned int i = 0; i < piecesVector[BLACK][j].size(); i++)
-			nextStep[BLACK][j] |= getPossibleMoves(piecesVector[BLACK][j][i]);
+		for (unsigned int i = 0; i < piecesVector[BLACK][j].size(); i++) {
+			pieceMoves = getPossibleMoves(piecesVector[BLACK][j][i]);
+			nextStep[BLACK][j] |= pieceMoves;
+		}
 	}
 }
 
@@ -238,6 +247,11 @@ BITBOARD Board::genNegativeMoves(const Position position, const Position directi
 
 bool Board::pathClearForCastl(Rook *rook) {
 	Piece *king = piecesVector[rook->color][KING][0];
+	/*
+	if (king->currentPosition < rook->currentPosition)
+		return (((1ULL << rook->currentPosition) - (1ULL << (king->currentPosition + 1))) & (board & (255ULL << ((king->currentPosition >> 3) << 3)))) == 0;
+	else
+		return (((1ULL << (king->currentPosition)) - (1ULL << (rook->currentPosition + 1))) & (board & (255ULL << ((king->currentPosition >> 3) << 3)))) == 0;*/
 	if (king->currentPosition < rook->currentPosition) {
 		for (Position i = king->currentPosition + 1; i < rook->currentPosition; i++)
 			if ( *(*(allPieces) + i) != nullptr)
@@ -613,9 +627,14 @@ BITBOARD Board::getPossibleMoves(Piece *piece) {
 
 std::vector<Board::Move*> Board::getPossiblePosition(Piece *piece) {
 	char mask = 1;
+	//auto it = piecesMap.find(piece);
+	//if (it == piecesMap.end())
+		//std::cout << "Mare caca" << std::endl;
 	BITBOARD possibleMoves = getPossibleMoves(piece);
+		//= piecesMap.find(piece)->second;
 	std::vector<Move*> v;
 
+	//printBitboard(possibleMoves);
 	possibleMoves = possibleMoves & (~(mask << piece->currentPosition));
 
 	if (piece->type == PAWNS) {
@@ -699,18 +718,6 @@ void Board::BasicMove::undo() {
 	board->_EPpawn = oldEligableEnPassant;
 	oldEligableEnPassant = nullptr;
 }
-
-Board::BasicMove* Board::BasicMove::copy() {
-	Board::BasicMove * newMove = new BasicMove;
-	newMove->newPosition = newPosition;
-	newMove->oldPosition = oldPosition;
-	newMove->isCastling = isCastling;
-	newMove->oldEligableEnPassant = oldEligableEnPassant;
-	newMove->piece1 = piece1;
-	newMove->piece2 = piece2;
-	return newMove;
-}
-
 //end BasicMove
 
 //PawnMove
@@ -743,16 +750,6 @@ void Board::PawnMove::undo() {
 	Board::BasicMove::undo();
 }
 
-
-Board::PawnMove* Board::PawnMove::copy() {
-	Board::PawnMove * newMove = new PawnMove;
-	newMove->newPosition = newPosition;
-	newMove->oldPosition = oldPosition;
-	newMove->isCastling = isCastling;
-	newMove->oldEligableEnPassant = oldEligableEnPassant;
-	newMove->direction = direction;
-	return newMove;
-}
 //end PawnMove
 
 
@@ -796,19 +793,6 @@ void Board::CastlingMove::undo() {
 	board->_EPpawn = oldEligableEnPassant;
 	oldEligableEnPassant = nullptr;
 }
-
-Board::CastlingMove* Board::CastlingMove::copy() {
-	Board::CastlingMove * newMove = new CastlingMove;
-	newMove->newPosition = newPosition;
-	newMove->oldPosition = oldPosition;
-	newMove->isCastling = isCastling;
-	newMove->oldEligableEnPassant = oldEligableEnPassant;
-	newMove->castlingDirection = castlingDirection;
-	newMove->king = king;
-	newMove->rook = rook;
-	return newMove;
-}
-
 //end CastlingMove
 
 //PawnPromotion
@@ -855,20 +839,6 @@ void Board::PawnPromotion::undo() {
 	oldEligableEnPassant = nullptr;
 }
 
-Board::PawnPromotion* Board::PawnPromotion::copy() {
-	Board::PawnPromotion * newMove = new Board::PawnPromotion;
-	newMove->newPosition = newPosition;
-	newMove->oldPosition = oldPosition;
-	newMove->isCastling = isCastling;
-	newMove->oldEligableEnPassant = oldEligableEnPassant;
-	newMove->newPiece = newPiece;
-	newMove->pawn = pawn;
-	newMove->removed = removed;
-	newMove->newType = newType;
-	return newMove;
-
-}
-
 //end PawnPromotion
 
 //EnPassant
@@ -903,20 +873,6 @@ void Board::EnPassant::undo() {
 	oldEligableEnPassant = nullptr;
 
 }
-
-Board::EnPassant* Board::EnPassant::copy() {
-	Board::EnPassant *newMove = new EnPassant;
-	newMove->newPosition = newPosition;
-	((Move*)newMove)->oldPosition = Move::oldPosition;
-	newMove->isCastling = isCastling;
-	newMove->oldEligableEnPassant = oldEligableEnPassant;
-	newMove->pawn = pawn;
-	newMove->removed = removed;
-	newMove->oldPosition = oldPosition;
-	return newMove;
-}
-
-//end enpassant
 
 Piece* Board::createPiece(PIECE_TYPES type, Piece *oldPiece) {
 	switch (type) {
@@ -959,6 +915,8 @@ void Board::putOnBoard(Piece *piece) {
 	*(*allPieces + piece->currentPosition) = piece;
 	board = boardsVector[WHITE] | boardsVector[BLACK];
 	updateNextMoves(piece->type, piece->color);
+	recalcMoves(piece->currentPosition);
+
 }
 
 void Board::applyInputMove(Position oldPosition, Position newPosition, char lastChar) {
@@ -1006,7 +964,7 @@ PIECE_TYPES Board::getPieceType(char c) {
 Piece* Board::movePiece(Piece *piece, Position newPosition) {
 	Piece *removedPiece = nullptr;
 	BITBOARD mask = 1;
-	
+
 	*(*allPieces + piece->currentPosition) = nullptr;
 	boardsVector[piece->color] = (boardsVector[piece->color] & (~(mask << piece->currentPosition)));
 
@@ -1017,6 +975,13 @@ Piece* Board::movePiece(Piece *piece, Position newPosition) {
 	piece->move(newPosition);
 	putOnBoard(piece);
 
+	//DE MODIFICAT
+	/*
+	if (oldPosition != newPosition)
+		boardsVector[piece->color] = (boardsVector[piece->color] | (mask << newPosition)) & (~(mask << oldPosition));
+	else 
+		boardsVector[piece->color] = (boardsVector[piece->color] | (mask << newPosition));
+		*/
 	_EPpawn = nullptr;	//cannot perform en passant after a move
 	return removedPiece;
 }
@@ -1025,25 +990,23 @@ ULL Board::calcBoardKey(PIECE_COLOR playerColor) {
 	ULL hashKey = 0;
 
 	if (playerColor == BLACK) {
-		for (int i = 5; i > -1; --i) {
-			for (int j = 0; j < piecesVector[0][i].size(); j++) {
-				hashKey ^= pieceKeys[0][i][piecesVector[0][i][j]->currentPosition];
-			}
-			for (int j = 0; j < piecesVector[1][i].size(); j++) {
-				hashKey ^= pieceKeys[1][i][piecesVector[1][i][j]->currentPosition];
+		for (int k = 0; k<2; ++k){
+			for (int i = 5; i > -1; --i) {
+				for (int j = 0; j < piecesVector[k][i].size(); j++) {
+					hashKey ^= pieceKeys[k][i][piecesVector[k][i][j]->currentPosition];
+				}
 			}
 		}
 		return hashKey;
 	}
 
+	for (int k = 0; k<2; ++k) {
 		for (int i = 5; i > -1; --i) {
-			for (int j = 0; j < piecesVector[0][i].size(); j++) {
-				hashKey ^= pieceKeys[0][i][63 - piecesVector[0][i][j]->currentPosition];
-			}
-			for (int j = 0; j < piecesVector[1][i].size(); j++) {
-				hashKey ^= pieceKeys[1][i][63 - piecesVector[1][i][j]->currentPosition];
+			for (int j = 0; j < piecesVector[k][i].size(); j++) {
+				hashKey ^= pieceKeys[k][i][63 - piecesVector[k][i][j]->currentPosition];
 			}
 		}
+	}
 
 	return hashKey;
 }
@@ -1132,6 +1095,7 @@ bool Board::isCheckMate(PIECE_COLOR playerColor) {
 
 // TODO
 int Board::evaluate(PIECE_COLOR playerColor) {
+
 	int s = 0;
 	int mobility[2] = { 0, 0 };
 	int bonus[2] = { 0, 0 };
@@ -1156,11 +1120,11 @@ int Board::evaluate(PIECE_COLOR playerColor) {
 
 	int mobilityScore = mobility[playerColor] * (mobility[playerColor] - mobility[otherPlayerColor]);
 	int bonusScore = (bonus[playerColor] - bonus[otherPlayerColor]);
-	
+
 	s += bonusScore;
 	s += material[playerColor] - material[otherPlayerColor];
 	s += mobilityScore;
-	
+
 	// King safety
 	if (piecesVector[playerColor][4].size() == 0 || piecesVector[otherPlayerColor][4].size() == 0)
 		return s;
@@ -1224,8 +1188,60 @@ int Board::getPieceScore(Piece *p) {
 		return pieceSquareTables[p->type][63 - p->currentPosition];
 	}
 
-	return pieceSquareTables[p->type][p->currentPosition];
+	return pieceSquareTables[p->type][p->currentPosition];	
 }
+
+/*
+std::vector<Board::Move*> Board::ownColorDepend(Piece *piece) {
+	std::vector<Move*> v;
+	return v;
+}
+*/
+
+void Board::recalcMoves(Position p) {}
+
+void Board::setDependences(Piece *piece) {
+	std::vector<Move*>& v = movesMap.find(piece)->second;
+
+	for (int i = 0; i < v.size(); i++) {
+		dependentPieces[v[i]->newPosition].push_back(piece);
+	}
+
+	//own color dependecies
+	BITBOARD empty, result, mask = 1;
+	char m = 1;
+
+	if (piece->type == PAWNS) {
+		empty = ~board;
+		Pawn *pawn = (Pawn*)piece;
+
+		result = ((pawn->getForwardMoves() ^ board) & (empty)) | ((pawn->getAttackMoves() ^ boardsVector[pawn->color]));
+		if (pawn->isOnStartingPosition()) {
+			//mask = mask << (pawn->currentPosition + (-1) * ((-2) * pawn->color + 1) * 8);
+			result = result & (~pawn->getForwardMoves());
+		}
+
+		for (Position i = 0; result != 0; i++){
+			if (m & result)
+				dependentPieces[i].push_back(piece);
+		}
+		return;
+	}
+
+	else {
+		piece->color = otherColor(piece->color);
+		result = getPossibleMoves(piece);
+		piece->color = otherColor(piece->color);
+	}
+
+	for (Position i = 0; result != 0; i++) {
+		if ((m & boardsVector[piece->color])) {
+			dependentPieces[i].push_back(piece);
+		}
+	}
+}
+
+/* Piece square tables initialisation*/
 
 const short int Board::pieceSquareTables[7][64] = {
 	// Pawns
