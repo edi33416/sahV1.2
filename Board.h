@@ -188,6 +188,12 @@ private:
 	void removeFromBitboards(BITBOARD &bitboard, Position position);
 	BITBOARD genNegativeMoves(const Position position, const Position direction);
 	BITBOARD genPositiveMoves(const Position position, const Position direction);
+	static const int valueOfAttack[6];
+	static const int attackWeight[12];
+	static const int directions[8];
+	static const int materialScores[6];
+
+	int material[2];
 	int getPieceScore(Piece *p);
 
 	std::unordered_map<ULL, HashVal> evalMap;

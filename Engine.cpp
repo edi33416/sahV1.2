@@ -85,7 +85,6 @@ void Engine::go() {
 }
 
 Board::MoveScore Engine::negamax(PIECE_COLOR playerColor, int depth, int alpha, int beta) {
-
 	if (board.hasBeenEvald(playerColor)) {
 		evals++;
 		return board.getMove();
@@ -156,7 +155,6 @@ void Engine::engineMove() {
 			return;
 		}
 		bestMove.move->apply();
-		//std::cout << "# " << ((CastlingPiece*)board.piecesVector[BLACK][KING][0])->moveCount << "rege\n";
 
 		//board.printBitboard(board.boardsVector[BLACK]);
 		//board.printPointerBoard(BLACK);
