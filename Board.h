@@ -197,7 +197,7 @@ private:
 	void recalcMoves(Position position);
 	std::vector<Piece*> dependentPieces[64];
 	void setDependences(Piece *piece);
-	std::vector<Move*> ownColorDepend(Piece *piece);
+	//std::vector<Move*> ownColorDepend(Piece *piece);
 };
 
 #endif

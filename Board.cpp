@@ -1141,10 +1141,12 @@ int Board::getPieceScore(Piece *p) {
 	return 0;
 }
 
+/*
 std::vector<Board::Move*> Board::ownColorDepend(Piece *piece) {
 	std::vector<Move*> v;
 	return v;
 }
+*/
 
 void Board::recalcMoves(Position p) {}
 
@@ -1165,7 +1167,7 @@ void Board::setDependences(Piece *piece) {
 
 		result = ((pawn->getForwardMoves() ^ board) & (empty)) | ((pawn->getAttackMoves() ^ boardsVector[pawn->color]));
 		if (pawn->isOnStartingPosition()) {
-			mask = mask << (pawn->currentPosition + (-1) * ((-2) * pawn->color + 1) * 8);
+			//mask = mask << (pawn->currentPosition + (-1) * ((-2) * pawn->color + 1) * 8);
 			result = result & (~pawn->getForwardMoves());
 		}
 
@@ -1173,6 +1175,7 @@ void Board::setDependences(Piece *piece) {
 			if (m & result)
 				dependentPieces[i].push_back(piece);
 		}
+		return;
 	}
 
 	else {
@@ -1182,7 +1185,7 @@ void Board::setDependences(Piece *piece) {
 	}
 
 	for (Position i = 0; result != 0; i++) {
-		if ((m & result) && (i & boardsVector[piece->color])) {
+		if ((m & boardsVector[piece->color])) {
 			dependentPieces[i].push_back(piece);
 		}
 	}
