@@ -36,6 +36,7 @@ public:
 		Move() {};
 		virtual void undo() = 0;
 		virtual void apply() = 0;
+		virtual bool isCapture() = 0;
 		Piece *oldEligableEnPassant = nullptr;
 	};
 
@@ -48,6 +49,7 @@ public:
 		BasicMove(Piece *p1, Position newPosition);
 		virtual void apply();
 		virtual void undo();
+		bool isCapture();
 		void set(Piece *piece, Position newPosition);
 	};
 
@@ -63,6 +65,7 @@ public:
 		void set(King *k, Rook *r);
 		void apply();
 		void undo();
+		bool isCapture();
 	};
 
 	class PawnPromotion : public Move {
@@ -75,6 +78,7 @@ public:
 		void set(Piece *p, Position newPosition, PIECE_TYPES newType);
 		void apply();
 		void undo();
+		bool isCapture();
 	};
 
 	class PawnMove : public BasicMove {
@@ -85,6 +89,7 @@ public:
 		PawnMove(Piece *p1, Position newPosition) : BasicMove(p1, newPosition){}
 		void apply();
 		void undo();
+		bool isCapture();
 	};
 
 	class EnPassant : public Move {
@@ -98,6 +103,7 @@ public:
 		void set(Piece *p, Piece *removed);
 		void apply();
 		void undo();
+		bool isCapture();
 	};
 
 	typedef struct MoveScore {

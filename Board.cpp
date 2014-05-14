@@ -152,7 +152,7 @@ void Board::init() {
 	// King
 	material[BLACK] += piecesVector[BLACK][4].size() * 0;
 	// Queen
-	material[BLACK] += piecesVector[BLACK][5].size() * 900;
+	material[BLACK] += piecesVector[BLACK][5].size() * 9000;
 
 	// Switch players color
 
@@ -167,7 +167,8 @@ void Board::init() {
 	// King
 	material[WHITE] += piecesVector[WHITE][4].size() * 0;
 	// Queen
-	material[WHITE] += piecesVector[WHITE][5].size() * 900;
+	material[WHITE] += piecesVector[WHITE][5].size() * 9000;
+
 
 
 }
@@ -718,6 +719,11 @@ void Board::BasicMove::undo() {
 	board->_EPpawn = oldEligableEnPassant;
 	oldEligableEnPassant = nullptr;
 }
+
+bool Board::BasicMove::isCapture() {
+	return piece2 != nullptr;
+}
+
 //end BasicMove
 
 //PawnMove
@@ -748,6 +754,10 @@ void Board::PawnMove::undo() {
 		}
 	}
 	Board::BasicMove::undo();
+}
+
+bool Board::PawnMove::isCapture() {
+	return piece2 != nullptr;
 }
 
 //end PawnMove
@@ -792,6 +802,10 @@ void Board::CastlingMove::undo() {
 	// Restoring old en passant
 	board->_EPpawn = oldEligableEnPassant;
 	oldEligableEnPassant = nullptr;
+}
+
+bool Board::CastlingMove::isCapture() {
+	return false;
 }
 //end CastlingMove
 
@@ -839,6 +853,10 @@ void Board::PawnPromotion::undo() {
 	oldEligableEnPassant = nullptr;
 }
 
+bool Board::PawnPromotion::isCapture() {
+	return removed != nullptr;
+}
+
 //end PawnPromotion
 
 //EnPassant
@@ -872,6 +890,10 @@ void Board::EnPassant::undo() {
 	board->_EPpawn = oldEligableEnPassant;
 	oldEligableEnPassant = nullptr;
 
+}
+
+bool Board::EnPassant::isCapture() {
+	return true;
 }
 
 Piece* Board::createPiece(PIECE_TYPES type, Piece *oldPiece) {
@@ -1100,7 +1122,6 @@ int Board::evaluate(PIECE_COLOR playerColor) {
 	int mobility[2] = { 0, 0 };
 	int bonus[2] = { 0, 0 };
 	PIECE_COLOR otherPlayerColor = otherColor(playerColor);
-
 	BITBOARD mask = 1;
 
 	for (int i = 63; i >= 0; i--) {
@@ -1118,16 +1139,43 @@ int Board::evaluate(PIECE_COLOR playerColor) {
 		}
 	}
 
-	int mobilityScore = mobility[playerColor] * (mobility[playerColor] - mobility[otherPlayerColor]);
+	int mobilityScore = 10 * (mobility[playerColor] - mobility[otherPlayerColor]);
 	int bonusScore = (bonus[playerColor] - bonus[otherPlayerColor]);
-
 	s += bonusScore;
 	s += material[playerColor] - material[otherPlayerColor];
 	s += mobilityScore;
 
+
+	// Bishop pair
+	s += 50 * (piecesVector[playerColor][BISHOPS].size() - piecesVector[otherPlayerColor][BISHOPS].size());
+
+	// Knight pair
+	if (piecesVector[playerColor][KNIGHTS].size() == 2)
+		s += 64 / (abs(piecesVector[playerColor][KNIGHTS][0]->currentPosition
+					   - piecesVector[playerColor][KNIGHTS][1]->currentPosition) + 1);
+
+	if (piecesVector[otherPlayerColor][KNIGHTS].size() == 2)
+		s -= 64 / (abs(piecesVector[otherPlayerColor][KNIGHTS][0]->currentPosition
+					   - piecesVector[otherPlayerColor][KNIGHTS][1]->currentPosition) + 1);
+
+	// Rook pair
+	if (piecesVector[playerColor][ROOKS].size() == 2)
+		s += (abs(piecesVector[playerColor][ROOKS][0]->currentPosition
+			  - piecesVector[playerColor][ROOKS][1]->currentPosition) + 1);
+
+	if (piecesVector[otherPlayerColor][ROOKS].size() == 2)
+		s -= (abs(piecesVector[otherPlayerColor][ROOKS][0]->currentPosition
+			  - piecesVector[otherPlayerColor][ROOKS][1]->currentPosition) + 1);
+
+	// No pawn penalty
+	s += (piecesVector[playerColor][PAWNS].size() - piecesVector[otherPlayerColor][PAWNS].size()) * 20;
+	
 	// King safety
-	if (piecesVector[playerColor][4].size() == 0 || piecesVector[otherPlayerColor][4].size() == 0)
+	if (piecesVector[playerColor][4].size() == 0 || piecesVector[otherPlayerColor][4].size() == 0) {
 		return s;
+	}
+
+	
 
 	std::vector<Position> kingsPosiblePositions[2];
 	Position kingsCurrentPosition[2] = { piecesVector[playerColor][4][0]->currentPosition,
@@ -1175,11 +1223,6 @@ int Board::evaluate(PIECE_COLOR playerColor) {
 
 	s += ((totalValueOfAttacks[otherPlayerColor] * attackWeight[encounterdAttacks[otherPlayerColor]]) / 100);
 	
-	if (piecesVector[playerColor][BISHOPS].size() == 1)
-		s -= 50;
-	if (piecesVector[otherPlayerColor][BISHOPS].size() == 1)
-		s += 50;
-
 	return s;
 }
 
@@ -1258,7 +1301,7 @@ const short int Board::pieceSquareTables[7][64] = {
 	5, 5, 10, 25, 25, 10, 5, 5,
 	10, 10, 20, 30, 30, 20, 10, 10,
 	50, 50, 50, 50, 50, 50, 50, 50,
-	300, 300, 300, 300, 300, 300, 300, 300
+	0, 0, 0, 0, 0, 0, 0, 0
 	},
 
 	// Knights

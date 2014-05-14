@@ -6,12 +6,13 @@
 #include <iostream>
 #include <string>
 #include <fstream>
+#include <algorithm>
 #include "Piece.h"
 #include "Board.h"
 #include "utils.h"
 
 #define COMMAND_RESIGN "resign\n"
-#define DEPTH 2
+#define DEPTH 4
 
 #define not_found std::string::npos
 
@@ -20,7 +21,11 @@ typedef char Color;
 class Engine {
 private:
 
+	PIECE_COLOR engineColor;
+	PIECE_COLOR colorToMove;
 	int evals;
+	int quiescence;
+	bool sorted;
 	std::string tok(std::string s, std::string delim);
 	Command currentCommand;
 	Color color;
@@ -34,9 +39,6 @@ private:
 	void reset();
 	Board::MoveScore negamax(PIECE_COLOR playerColor, int depth, int alpha, int beta);
 
-	PIECE_COLOR engineColor;
-	PIECE_COLOR colorToMove;
-	int foo;
 public:
 	void mainLoop();		
 	Command computeCommnandForWinboard(const Position oldPosition, const Position newPosition);

@@ -84,15 +84,52 @@ void Engine::go() {
 	engineMove();
 }
 
+
 Board::MoveScore Engine::negamax(PIECE_COLOR playerColor, int depth, int alpha, int beta) {
+	
 	/*if (board.hasBeenEvald(playerColor)) {
 		evals++;
 		return board.getMove();
 	}*/
+	
 	if (depth == 0) {
 		return Board::MoveScore(nullptr, board.evaluate(playerColor));
 	}
+	PIECE_COLOR otherPlayerColor = (playerColor == WHITE) ? BLACK : WHITE;
 
+	if (!sorted) {
+		std::vector< std::pair<Board::Move*, int> > sortedMoves;
+		for (int i = 0; i < 6; i++) {
+			for (int j = board.piecesVector[playerColor][i].size() - 1; j >= 0; j--) {
+				std::vector<Board::Move*> moves = board.getPossiblePosition(board.piecesVector[playerColor][i][j]);
+				for (int k = moves.size() - 1; k >= 0; k--) {
+					moves[k]->apply();
+					if (board.isCheckMate(engineColor)) {
+						moves[k]->undo();
+						continue;
+					}
+					sortedMoves.push_back(std::pair<Board::Move*, int>(moves[k], board.evaluate(playerColor)));
+					moves[k]->undo();
+				}
+			}
+		}
+		std::sort(sortedMoves.begin(), sortedMoves.end(),
+			[](const std::pair<Board::Move*, int> &one, const std::pair<Board::Move*, int> &other) {return one.second < other.second; });
+		sorted = true;
+	
+		Board::MoveScore bestSortedMove, tmpMove;
+		bestSortedMove.score = INT_MIN;
+		for (auto move : sortedMoves) {
+			move.first->apply();
+			tmpMove = negamax(otherPlayerColor, depth - 1, -beta, -alpha);
+			if (tmpMove.score > bestSortedMove.score) {
+				bestSortedMove.score = tmpMove.score;
+				bestSortedMove.move = move.first;
+			}
+			move.first->undo();
+		}
+		return bestSortedMove;
+	}
 
 	Board::MoveScore bestMove(nullptr, INT_MIN);
 	for (int i = 0; i < 6; i++) {
@@ -109,27 +146,25 @@ Board::MoveScore Engine::negamax(PIECE_COLOR playerColor, int depth, int alpha, 
 					continue;
 				}
 				
-				Board::MoveScore currentMove = negamax(((playerColor == WHITE) ? BLACK : WHITE), depth - 1, -beta, -alpha);
+				Board::MoveScore currentMove = negamax(otherPlayerColor, depth - 1, -beta, -alpha);
+				//quiescence search
+				if ((depth == 1) && moves[k]->isCapture() && (quiescence != 1)) {
+					quiescence++;
+					currentMove = negamax(otherPlayerColor, depth, -beta, -alpha);
+				}
+				
 				currentMove.score = -currentMove.score;
-			
 				currentMove.move = moves[k];
-				//if (dynamic_cast<Board::EnPassant*>(moves[k]) != 0) {
-				//	currentMove.second += 200000;
-				//}
 
+	
 				if (currentMove.score > alpha) {
 					alpha = currentMove.score;
-					/*
-					bestMove.first = currentMove.first;
-					bestMove.second = alpha;
-					*/
 					bestMove = currentMove;
 				}
 
-				if (alpha > beta) {
+				if (alpha >= beta) {
 					bestMove.score = beta;
 					moves[k]->undo();
-					//board.addToHash(bestMove, playerColor);
 					return bestMove;
 				}
 				moves[k]->undo();
@@ -146,8 +181,9 @@ void Engine::engineMove() {
 
 	evals = 0;
 	if (!isForced) {
-		Board::MoveScore bestMove = negamax(engineColor, DEPTH, -2000000, 2000000 );
-
+		quiescence = 0;
+		sorted = false;
+		Board::MoveScore bestMove = negamax(engineColor, DEPTH, -2000000, 2000000);
 		if (bestMove.score == INT_MIN) {
 			sendCommand("resign");
 			return;
@@ -169,7 +205,6 @@ void Engine::mainLoop() {
 	Position newPosition;
 		
 	std::cout.setf(std::ios::unitbuf);
-	foo = 0;
 	srand((unsigned int)time(NULL));
 
 	colorToMove = WHITE;
