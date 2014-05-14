@@ -853,11 +853,10 @@ Piece* Board::createPiece(PIECE_TYPES type, Piece *oldPiece) {
 }
 
 void Board::removePiece(Piece *piece) {
-	tempRemovedPieces.push_back(piece);
 
 	if (piece->type == KING) {
-		//printPointerBoard(BLACK);
-		//printPointerBoard(WHITE);
+		printPointerBoard(BLACK);
+		printPointerBoard(WHITE);
 	}
 	*(*(allPieces) + piece->currentPosition) = nullptr;
 	
@@ -868,6 +867,12 @@ void Board::removePiece(Piece *piece) {
 			break;
 		}
 	}
+	if (piece->type == KING) {
+		printPointerBoard(BLACK);
+		printPointerBoard(WHITE);
+		std::cout << piecesVector[BLACK][QUEEN][0];
+	}
+
 	material[piece->color] -= materialScores[piece->type];
 }
 
@@ -940,9 +945,13 @@ Piece* Board::movePiece(Piece *piece, Position newPosition) {
 	if ((mask << newPosition) & board) {
 		removedPiece = (*(*allPieces + newPosition));
 		removePiece(removedPiece);
+		if (removedPiece->type == KING) {
+			std::cout <<(int) piece->currentPosition << " " << piece->color;
+		}
 	}
 	piece->move(newPosition);
 	putOnBoard(piece);
+	
 
 	//DE MODIFICAT
 	/*
@@ -1123,7 +1132,7 @@ bool Board::isCheckMate(PIECE_COLOR playerColor) {
 
 	//diag sus stanga
 	pos = king->currentPosition;
-	while (pos < 56) {
+	while (pos < 55) {
 		if (((pos + 1) & mask) == 0)
 			break;
 
@@ -1143,24 +1152,33 @@ bool Board::isCheckMate(PIECE_COLOR playerColor) {
 
 	//diag sus dreapta
 	pos = king->currentPosition;
-	while ((pos < 56) && ((pos & mask) != 0)) {
-		pos += 7;
-		if (pieceAt(pos) == nullptr)
-			continue;
+	if ((pos & mask) != 0) {
+		while (pos < 56) {
+			pos += 7;
+			if (pieceAt(pos) == nullptr) {
+				if ((mask & pos) != 0)
+					continue;
+				break;
+			}
 
-		otherPiece = pieceAt(pos);
-		if (otherPiece->color == otherPlayerColor)
-			if (attacksDiag(otherPiece))
-				return true;
-		break;
+			otherPiece = pieceAt(pos);
+			if (otherPiece->color == otherPlayerColor)
+				if (attacksDiag(otherPiece))
+					return true;
+			break;
+		}
 	}
 
 	//diag jos stanga
 	pos = king->currentPosition;
-	while ((pos > 7) && (((pos + 1) & mask) != 0)) {
+	if ((((pos + 1) & mask) != 0));
+	while ((pos > 7)) {
 		pos -= 7;
-		if (pieceAt(pos) == nullptr)
-			continue;
+		if (pieceAt(pos) == nullptr) {
+			if (((pos + 1) & mask) != 0)
+				continue;
+			break;
+		}
 
 		otherPiece = pieceAt(pos);
 		if (otherPiece->color == otherPlayerColor)
@@ -1171,10 +1189,14 @@ bool Board::isCheckMate(PIECE_COLOR playerColor) {
 
 	//diag jos dreapta
 	pos = king->currentPosition;
-	while ((pos > 8) && ((pos & mask) != 0)) {
+	if (((pos & mask) != 0))
+	while ((pos > 8)) {
 		pos -= 9;
-		if (pieceAt(pos) == nullptr)
-			continue;
+		if (pieceAt(pos) == nullptr) {
+			if ((pos & mask) != 0)
+				continue;
+			break;
+		}
 
 		otherPiece = pieceAt(pos);
 		if (otherPiece->color == otherPlayerColor)
@@ -1241,8 +1263,6 @@ int Board::evaluate(PIECE_COLOR playerColor) {
 	PIECE_COLOR otherPlayerColor = otherColor(playerColor);
 	BITBOARD mask = 1;
 
-	s += material[playerColor] - material[otherPlayerColor];
-	return s;
 	for (int i = 0; i < 6; i++) {
 		for (int j = piecesVector[playerColor][i].size() - 1; j >= 0; j--)
 			bonus[playerColor] += getPieceScore(piecesVector[playerColor][i][j]);
@@ -1253,7 +1273,6 @@ int Board::evaluate(PIECE_COLOR playerColor) {
 	int bonusScore = (bonus[playerColor] - bonus[otherPlayerColor]);
 	s += bonusScore;
 	s += material[playerColor] - material[otherPlayerColor];
-	return s;
 
 	// Bishop pair
 	s += 50 * (piecesVector[playerColor][BISHOPS].size() - piecesVector[otherPlayerColor][BISHOPS].size());

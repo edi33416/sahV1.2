@@ -133,7 +133,6 @@ public:
 	static const short int pieceSquareTables[7][64];
 	static const char KING_END_GAME = 6;
 
-	std::vector<Piece*> tempRemovedPieces;
 	
 	void printBitboard(BITBOARD boardToPrint);
 	void printDebug();

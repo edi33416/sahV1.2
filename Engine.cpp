@@ -70,7 +70,6 @@ void Engine::sendCommand(Command command) {
 	processCommand(command);
 	std::cout << command;
 	std::fflush(stdout);
-	board.tempRemovedPieces.clear();
 }
 
 void Engine::force() {
@@ -155,12 +154,10 @@ Board::MoveScore Engine::negamax(PIECE_COLOR playerColor, int depth, int alpha, 
 				
 				Board::MoveScore currentMove = negamax(otherPlayerColor, depth - 1, -beta, -alpha);
 				//quiescence search
-				/*
 				if ((depth == 1) && moves[k]->isCapture() && (quiescence != 2)) {
 					quiescence++;
 					currentMove = negamax(otherPlayerColor, depth, -beta, -alpha);
 				}
-				*/
 				currentMove.score = -currentMove.score;
 				currentMove.move = moves[k];
 
@@ -198,6 +195,7 @@ void Engine::engineMove() {
 		} else {*/
 			quiescence = 0;
 			sorted = false;
+			int number_of_pieces = 0;
 			Board::MoveScore bestMove = negamax(engineColor, DEPTH, -2000000, 2000000);
 			if (bestMove.score == INT_MIN) {
 				sendCommand("resign");
@@ -209,7 +207,6 @@ void Engine::engineMove() {
 			colorToMove = (colorToMove == WHITE) ? BLACK : WHITE;
 			sendCommand(command);
 
-			std::cout << "#" << evals << "\n";
 		//}
 	}
 }

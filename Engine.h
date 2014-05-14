@@ -12,7 +12,6 @@
 #include "utils.h"
 
 #define COMMAND_RESIGN "resign\n"
-#define DEPTH 4
 
 #define not_found std::string::npos
 
@@ -40,6 +39,7 @@ private:
 	Board::MoveScore negamax(PIECE_COLOR playerColor, int depth, int alpha, int beta);
 
 public:
+	int DEPTH = 4;
 	void mainLoop();		
 	Command computeCommnandForWinboard(const Position oldPosition, const Position newPosition);
 	void getCommand();
