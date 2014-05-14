@@ -628,11 +628,7 @@ BITBOARD Board::getPossibleMoves(Piece *piece) {
 
 std::vector<Board::Move*> Board::getPossiblePosition(Piece *piece) {
 	char mask = 1;
-	//auto it = piecesMap.find(piece);
-	//if (it == piecesMap.end())
-		//std::cout << "Mare caca" << std::endl;
 	BITBOARD possibleMoves = getPossibleMoves(piece);
-		//= piecesMap.find(piece)->second;
 	std::vector<Move*> v;
 
 	//printBitboard(possibleMoves);

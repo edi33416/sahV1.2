@@ -2,10 +2,11 @@
 //
 #include "Engine.h"
 
+/*
 int main() {
 	Engine e;
 
 //	e.init();
 	e.mainLoop();
 	return 0;
-}
+}*/
