@@ -91,12 +91,12 @@ Board::MoveScore Engine::negamax(PIECE_COLOR playerColor, int depth, int alpha, 
 		evals++;
 		return board.getMove();
 	}*/
-	
 	if (depth == 0) {
 		return Board::MoveScore(nullptr, board.evaluate(playerColor));
 	}
 	PIECE_COLOR otherPlayerColor = (playerColor == WHITE) ? BLACK : WHITE;
 
+	/*
 	if (!sorted) {
 		std::vector< std::pair<Board::Move*, int> > sortedMoves;
 		for (int i = 0; i < 6; i++) {
@@ -105,6 +105,8 @@ Board::MoveScore Engine::negamax(PIECE_COLOR playerColor, int depth, int alpha, 
 				for (int k = moves.size() - 1; k >= 0; k--) {
 					moves[k]->apply();
 					if (board.isCheckMate(engineColor)) {
+						board.printPointerBoard(BLACK);
+						board.printPointerBoard(WHITE);
 						moves[k]->undo();
 						continue;
 					}
@@ -114,23 +116,28 @@ Board::MoveScore Engine::negamax(PIECE_COLOR playerColor, int depth, int alpha, 
 			}
 		}
 		std::sort(sortedMoves.begin(), sortedMoves.end(),
-			[](const std::pair<Board::Move*, int> &one, const std::pair<Board::Move*, int> &other) {return one.second < other.second; });
+			[](const std::pair<Board::Move*, int> &one, const std::pair<Board::Move*, int> &other) {return one.second > other.second; });
 		sorted = true;
+
+		for (auto it : sortedMoves) {
+			std::cout << "# " << it.second << " ";
+		}
+		std::cout << std::endl;
 	
 		Board::MoveScore bestSortedMove, tmpMove;
 		bestSortedMove.score = INT_MIN;
-		for (auto move : sortedMoves) {
-			move.first->apply();
+		for (int i = 0; i < sortedMoves.size() / 2; i++) {
+			sortedMoves[i].first->apply();
 			tmpMove = negamax(otherPlayerColor, depth - 1, -beta, -alpha);
 			if (tmpMove.score > bestSortedMove.score) {
 				bestSortedMove.score = tmpMove.score;
-				bestSortedMove.move = move.first;
+				bestSortedMove.move = sortedMoves[i].first;
 			}
-			move.first->undo();
+			sortedMoves[i].first->undo();
 		}
 		return bestSortedMove;
 	}
-
+	*/
 	Board::MoveScore bestMove(nullptr, INT_MIN);
 	for (int i = 0; i < 6; i++) {
 		for (int j = board.piecesVector[playerColor][i].size() - 1; j >= 0; j--) {
@@ -148,11 +155,12 @@ Board::MoveScore Engine::negamax(PIECE_COLOR playerColor, int depth, int alpha, 
 				
 				Board::MoveScore currentMove = negamax(otherPlayerColor, depth - 1, -beta, -alpha);
 				//quiescence search
-				if ((depth == 1) && moves[k]->isCapture() && (quiescence != 1)) {
+				/*
+				if ((depth == 1) && moves[k]->isCapture() && (quiescence != 2)) {
 					quiescence++;
 					currentMove = negamax(otherPlayerColor, depth, -beta, -alpha);
 				}
-				
+				*/
 				currentMove.score = -currentMove.score;
 				currentMove.move = moves[k];
 

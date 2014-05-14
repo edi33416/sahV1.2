@@ -143,14 +143,12 @@ public:
 	BITBOARD board, boardsVector[2];
 
 	// Moves for each type of piece in one step
-	BITBOARD_SET nextStep[2];
 
 	PIECE_SET piecesVector[2][6];
 
 	// A matrix of pointers to all the chess pieces
 	Piece *allPieces[8][8];
 
-	bool isMovable(PIECE_TYPES pieceType, PIECE_COLOR pieceColor);
 	bool isCheckMate(PIECE_COLOR playerColor);
 	Piece* movePiece(Piece *piece, Position newPosition);
 	int evaluate(PIECE_COLOR playerColor);
@@ -159,7 +157,6 @@ public:
 	inline bool pathClearForCastl(Rook *rook);
 	std::vector<Move*> getPossiblePosition(Piece *piece);
 	void removePiece(Piece *piece);
-	void updateNextMoves(PIECE_TYPES pieceType, PIECE_COLOR pieceColor);
 	BITBOARD getPossibleMoves(Piece *piece);
 	Board();
 	~Board();

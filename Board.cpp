@@ -20,8 +20,6 @@ Board::Board() {
 		}
 	}
 	Move::board = this;
-	nextStep[WHITE] = new BITBOARD[6]();
-	nextStep[BLACK] = new BITBOARD[6]();
 	init();
 }
 
@@ -36,10 +34,6 @@ void Board::erase() {
 		piecesVector[BLACK][i].clear();
 	}
 
-	for (i = 0; i < 6; i++) {
-		nextStep[WHITE][i] = 0;
-		nextStep[BLACK][i] = 0;
-	}
 }
 
 void Board::init() {
@@ -127,20 +121,6 @@ void Board::init() {
 	piecesVector[WHITE][KING].push_back(p);
 	*(*(allPieces)+3) = p;
 
-
-	// Constructing BITBOARD sets for next step
-	for (int i = 0; i < 8; i++) {
-		nextStep[WHITE][PAWNS] |= ((Pawn*)piecesVector[WHITE][PAWNS][i])->getForwardMoves();
-		nextStep[BLACK][PAWNS] |= ((Pawn*)piecesVector[BLACK][PAWNS][i])->getForwardMoves();
-	}
-
-	for (int i = 0; i < 2; i++) {
-		nextStep[WHITE][KNIGHTS] |= piecesVector[WHITE][KNIGHTS][i]->getAllMoves();
-		nextStep[BLACK][KNIGHTS] |= piecesVector[BLACK][KNIGHTS][i]->getAllMoves();
-	}
-
-	//updateNextMoves(PAWNS, BLACK);
-	
 	// Pawns
 	material[BLACK] = piecesVector[BLACK][0].size() * 100;
 	// Knigths
@@ -168,36 +148,6 @@ void Board::init() {
 	material[WHITE] += piecesVector[WHITE][4].size() * 0;
 	// Queen
 	material[WHITE] += piecesVector[WHITE][5].size() * 9000;
-
-
-
-}
-
-
-bool Board::isMovable(PIECE_TYPES pieceType, PIECE_COLOR pieceColor) {
-	
-	return ((nextStep[pieceColor][pieceType] > 0) ? true : false);
-}
-
-//DE MODIFICAT
-void Board::updateNextMoves(PIECE_TYPES pieceType, PIECE_COLOR pieceColor) {
-	int j;
-	BITBOARD pieceMoves;
-	
-	
-	for (j=5; j >= 0; j--) {
-		nextStep[WHITE][j] = 0;
-		for (unsigned int i = 0; i < piecesVector[WHITE][j].size(); i++) {
-			pieceMoves = getPossibleMoves(piecesVector[WHITE][j][i]);
-			nextStep[WHITE][j] |= pieceMoves;
-		}
-		
-		nextStep[BLACK][j] = 0;
-		for (unsigned int i = 0; i < piecesVector[BLACK][j].size(); i++) {
-			pieceMoves = getPossibleMoves(piecesVector[BLACK][j][i]);
-			nextStep[BLACK][j] |= pieceMoves;
-		}
-	}
 }
 
 void Board::printBitboard(BITBOARD boardToPrint) {
@@ -244,7 +194,6 @@ BITBOARD Board::genNegativeMoves(const Position position, const Position directi
 	result |= mask << (position - direction);
 	return result;
 }
-
 
 bool Board::pathClearForCastl(Rook *rook) {
 	Piece *king = piecesVector[rook->color][KING][0];
@@ -906,6 +855,10 @@ Piece* Board::createPiece(PIECE_TYPES type, Piece *oldPiece) {
 void Board::removePiece(Piece *piece) {
 	tempRemovedPieces.push_back(piece);
 
+	if (piece->type == KING) {
+		//printPointerBoard(BLACK);
+		//printPointerBoard(WHITE);
+	}
 	*(*(allPieces) + piece->currentPosition) = nullptr;
 	
 	for (unsigned int i = 0; i < piecesVector[piece->color][piece->type].size(); i++) {
@@ -916,7 +869,6 @@ void Board::removePiece(Piece *piece) {
 		}
 	}
 	material[piece->color] -= materialScores[piece->type];
-	updateNextMoves(piece->type, piece->color);
 }
 
 void Board::removeFromBitboards(BITBOARD &bitboard, Position position) {
@@ -932,7 +884,6 @@ void Board::putOnBoard(Piece *piece) {
 	boardsVector[piece->color] = (boardsVector[piece->color] | (1ULL << piece->currentPosition));
 	*(*allPieces + piece->currentPosition) = piece;
 	board = boardsVector[WHITE] | boardsVector[BLACK];
-	updateNextMoves(piece->type, piece->color);
 	recalcMoves(piece->currentPosition);
 
 }
@@ -1050,7 +1001,6 @@ void Board::addToHash(Board::MoveScore m, PIECE_COLOR playerColor) {
 bool Board::hasBeenEvald(PIECE_COLOR playerColor) {
 	ULL hashKey = calcBoardKey(playerColor);
 
-
 	auto it = evalMap.find(hashKey);
 
 	if (it == evalMap.end())
@@ -1080,11 +1030,6 @@ Board::MoveScore Board::getMove() {
 
 void Board::printDebug() {
 	/*std::cout << "#cai + pioni albi negri \n";
-	printBitboard(nextStep[WHITE][KNIGHTS]);
-	printBitboard(nextStep[WHITE][PAWNS]);
-	printBitboard(nextStep[BLACK][KNIGHTS]);
-	printBitboard(nextStep[BLACK][PAWNS]);
-
 	std::cout << "#whiteboard\n";
 	printBitboard(boardsVector[WHITE]);
 
@@ -1099,16 +1044,192 @@ void Board::printDebug() {
 }
 
 bool Board::isCheckMate(PIECE_COLOR playerColor) {
-	BITBOARD kingPosition = 1;
-	kingPosition = kingPosition << piecesVector[playerColor][KING][0]->currentPosition;
 
-	kingPosition &= (nextStep[otherColor(playerColor)][PAWNS] | nextStep[otherColor(playerColor)][KNIGHTS] |
-					 nextStep[otherColor(playerColor)][ROOKS] | nextStep[otherColor(playerColor)][BISHOPS] |
-					 nextStep[otherColor(playerColor)][QUEEN] | nextStep[otherColor(playerColor)][KING]);
+#define attacksLine(piece) (((piece)->type == QUEEN) || ((piece)->type == ROOKS))
+#define attacksDiag(piece) (((piece)->type == QUEEN) || ((piece)->type == BISHOPS))
 
-	if (kingPosition == 0)
-		return false;
-	return true;
+	if (piecesVector[playerColor][KING].size() == 0)
+		return true;
+	Piece *king = piecesVector[playerColor][KING][0];
+	Piece *otherPiece = nullptr;
+
+
+	//stanga
+	int direction = 1;
+	char mask = 7;
+	BITBOARD pieceAttacks;
+	Position pos = king->currentPosition + 1;
+	PIECE_COLOR otherPlayerColor = otherColor(playerColor);
+
+	while ((pos & mask) != 0) {
+		if (pieceAt(pos) == nullptr)
+			pos++;
+		else {
+			otherPiece = pieceAt(pos);
+			if (otherPiece->color == otherPlayerColor)
+				if (attacksLine(otherPiece))
+					return true;
+			break;
+		}
+	}
+
+	//dreapta
+	pos = king->currentPosition;
+	while (true) {
+		if ((pos & mask) == 0)
+			break;
+
+		pos--;
+		if (pieceAt(pos) == nullptr)
+			continue;
+
+		otherPiece = pieceAt(pos);
+		if (otherPiece->color == otherPlayerColor)
+			if (attacksLine(otherPiece))
+				return true;
+		break;
+	}
+
+	//sus
+	pos = king->currentPosition + 8;
+	while (pos < 64) {
+		if (pieceAt(pos) == nullptr) {
+			pos += 8;
+			continue;
+		}
+
+		otherPiece = pieceAt(pos);
+		if (otherPiece->color == otherPlayerColor)
+			if (attacksLine(otherPiece))
+				return true;
+
+		break;
+	}
+
+	//jos
+	pos = king->currentPosition - 8;
+	while (pos > -1) {
+		if (pieceAt(pos) == nullptr) {
+			pos -= 8;
+			continue;
+		}
+
+		otherPiece = pieceAt(pos);
+		if (otherPiece->color == otherPlayerColor)
+			if (attacksLine(otherPiece))
+				return true;
+		break;
+	}
+
+	//diag sus stanga
+	pos = king->currentPosition;
+	while (pos < 56) {
+		if (((pos + 1) & mask) == 0)
+			break;
+
+		pos += 9;
+		if (pieceAt(pos) == nullptr) {
+			continue;
+		}
+
+		otherPiece = pieceAt(pos);
+		if (otherPiece->color == otherPlayerColor)
+			if (attacksDiag(otherPiece))
+				return true;
+		break;
+	}
+
+	//if (otherPiece->currentPosition - king->currentPosition == 9 || otherPiece->color == otherPlayerColor || piece)
+
+	//diag sus dreapta
+	pos = king->currentPosition;
+	while ((pos < 56) && ((pos & mask) != 0)) {
+		pos += 7;
+		if (pieceAt(pos) == nullptr)
+			continue;
+
+		otherPiece = pieceAt(pos);
+		if (otherPiece->color == otherPlayerColor)
+			if (attacksDiag(otherPiece))
+				return true;
+		break;
+	}
+
+	//diag jos stanga
+	pos = king->currentPosition;
+	while ((pos > 7) && (((pos + 1) & mask) != 0)) {
+		pos -= 7;
+		if (pieceAt(pos) == nullptr)
+			continue;
+
+		otherPiece = pieceAt(pos);
+		if (otherPiece->color == otherPlayerColor)
+			if (attacksDiag(otherPiece))
+				return true;
+		break;
+	}
+
+	//diag jos dreapta
+	pos = king->currentPosition;
+	while ((pos > 8) && ((pos & mask) != 0)) {
+		pos -= 9;
+		if (pieceAt(pos) == nullptr)
+			continue;
+
+		otherPiece = pieceAt(pos);
+		if (otherPiece->color == otherPlayerColor)
+			if (attacksDiag(otherPiece))
+				return true;
+		break;
+	}
+
+	BITBOARD _mask = 1ULL << king->currentPosition;
+	for (direction = 0; direction < piecesVector[otherPlayerColor][KNIGHTS].size(); direction++) {
+		if ((_mask & getPossibleMoves(piecesVector[otherPlayerColor][KNIGHTS][direction])) != 0)
+			return true;
+	}
+
+	pos = king->currentPosition;
+	int pawn1, pawn2;
+	mask = 7;
+	if (playerColor == BLACK) {
+		pawn1 = pos - 7;
+		pawn2 = pos - 9;
+		if ((pos & mask) == 0 || pawn2 < 0)
+			pawn2 = -1;
+		if (((pos + 1) & mask) == 0 || pawn1 < 0)
+			pawn1 = -1;
+		if (pawn1 != -1) {
+			otherPiece = pieceAt(pawn1);
+			if (otherPiece != nullptr && otherPiece->type == PAWNS && otherPiece->color == otherPlayerColor)
+				return true;
+		}
+		if (pawn2 != -1) {
+			otherPiece = pieceAt(pawn2);
+			if (otherPiece != nullptr && otherPiece->type == PAWNS && otherPiece->color == otherPlayerColor)
+				return true;
+		}
+	}
+	else {
+		pawn1 = pos + 7;
+		pawn2 = pos + 9;
+		if ((pos & mask) == 0 || pawn2 > 63)
+			pawn1 = -1;
+		if (((pos + 1) & mask) == 0 || pawn1 > 63)
+			pawn2 = -1;
+		if (pawn1 != -1) {
+			otherPiece = pieceAt(pawn1);
+			if (otherPiece != nullptr && otherPiece->type == PAWNS && otherPiece->color == otherPlayerColor)
+				return true;
+		}
+		if (pawn2 != -1) {
+			otherPiece = pieceAt(pawn2);
+			if (otherPiece != nullptr && otherPiece->type == PAWNS && otherPiece->color == otherPlayerColor)
+				return true;
+		}
+	}
+	
+	return false;
 }
 
 // TODO
@@ -1120,27 +1241,19 @@ int Board::evaluate(PIECE_COLOR playerColor) {
 	PIECE_COLOR otherPlayerColor = otherColor(playerColor);
 	BITBOARD mask = 1;
 
-	for (int i = 63; i >= 0; i--) {
-		Piece* piece = pieceAt(i);
-		if (piece != nullptr) {
-			bonus[piece->color] += getPieceScore(piece);
-		}
-
-		mask = (1ULL) << i;
-		for (int pieceType = 5; pieceType >= 0; pieceType--) {
-			if (mask & nextStep[WHITE][pieceType])
-				mobility[WHITE]++;
-			if (mask & nextStep[BLACK][pieceType])
-				mobility[BLACK]++;
-		}
+	s += material[playerColor] - material[otherPlayerColor];
+	return s;
+	for (int i = 0; i < 6; i++) {
+		for (int j = piecesVector[playerColor][i].size() - 1; j >= 0; j--)
+			bonus[playerColor] += getPieceScore(piecesVector[playerColor][i][j]);
+		for (int j = piecesVector[otherPlayerColor][i].size() - 1; j >= 0; j--)
+			bonus[otherPlayerColor] += getPieceScore(piecesVector[otherPlayerColor][i][j]);
 	}
 
-	int mobilityScore = 10 * (mobility[playerColor] - mobility[otherPlayerColor]);
 	int bonusScore = (bonus[playerColor] - bonus[otherPlayerColor]);
 	s += bonusScore;
 	s += material[playerColor] - material[otherPlayerColor];
-	s += mobilityScore;
-
+	return s;
 
 	// Bishop pair
 	s += 50 * (piecesVector[playerColor][BISHOPS].size() - piecesVector[otherPlayerColor][BISHOPS].size());
@@ -1167,6 +1280,7 @@ int Board::evaluate(PIECE_COLOR playerColor) {
 	s += (piecesVector[playerColor][PAWNS].size() - piecesVector[otherPlayerColor][PAWNS].size()) * 20;
 	
 	// King safety
+	/*
 	if (piecesVector[playerColor][4].size() == 0 || piecesVector[otherPlayerColor][4].size() == 0) {
 		return s;
 	}
@@ -1218,13 +1332,11 @@ int Board::evaluate(PIECE_COLOR playerColor) {
 	}
 
 	s += ((totalValueOfAttacks[otherPlayerColor] * attackWeight[encounterdAttacks[otherPlayerColor]]) / 100);
-	
+	*/
 	return s;
 }
 
 Board* Board::Move::board = 0;
-
-/* Piece square tables initialisation*/
 
 int Board::getPieceScore(Piece *p) {
 
