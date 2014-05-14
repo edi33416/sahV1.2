@@ -187,22 +187,30 @@ Board::MoveScore Engine::negamax(PIECE_COLOR playerColor, int depth, int alpha, 
 void Engine::engineMove() {
 	Command command;
 
-	evals = 0;
 	if (!isForced) {
-		quiescence = 0;
-		sorted = false;
-		Board::MoveScore bestMove = negamax(engineColor, DEPTH, -2000000, 2000000);
-		if (bestMove.score == INT_MIN) {
-			sendCommand("resign");
-			return;
-		}
-		bestMove.move->apply();
-		command = computeCommnandForWinboard(bestMove.move->oldPosition, bestMove.move->newPosition);
+		/*if (openings == true) {
+			std::pair<int,int> result = board.getOpeningMove();
+			if ( result.first == 0 && result.second == 0) {
+				openings = false;
+			}
+			else {
+				sendCommand(command);
+		} else {*/
+			quiescence = 0;
+			sorted = false;
+			Board::MoveScore bestMove = negamax(engineColor, DEPTH, -2000000, 2000000);
+			if (bestMove.score == INT_MIN) {
+				sendCommand("resign");
+				return;
+			}
+			bestMove.move->apply();
+			command = computeCommnandForWinboard(bestMove.move->oldPosition, bestMove.move->newPosition);
 
-		colorToMove = (colorToMove == WHITE) ? BLACK : WHITE;
-		sendCommand(command);
-	
-		std::cout << "#" << evals << "\n";
+			colorToMove = (colorToMove == WHITE) ? BLACK : WHITE;
+			sendCommand(command);
+
+			std::cout << "#" << evals << "\n";
+		//}
 	}
 }
 
@@ -267,11 +275,7 @@ void Engine::mainLoop() {
 			processCommand(currentCommand);
 			oldPosition = 7 - (currentCommand[0] - 'a') + (currentCommand[1] - '1') * 8;
 			newPosition = 7 - (currentCommand[2] - 'a') + (currentCommand[3] - '1') * 8;
-			/*
-			board.movePiece(*(*board.allPieces + oldPosition), newPosition);
-
-
-			*/
+			
 			board.applyInputMove(oldPosition, newPosition, currentCommand[4]);
 			colorToMove = (colorToMove == BLACK) ? WHITE : BLACK;
 		}

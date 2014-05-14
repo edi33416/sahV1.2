@@ -123,6 +123,10 @@ public:
 
 	};
 
+	class OpenMove {
+		std::vector<std::pair<int, int>> moves;
+	};
+
 
 public:
 	// Adding piece square tables
@@ -170,6 +174,8 @@ public:
 	bool hasBeenEvald(PIECE_COLOR playerColor);
 	MoveScore getMove();
 	void printHash();
+	std::pair<int,int> getOpeningMove();
+
 
 private:
 	typedef struct HashVal {
@@ -180,6 +186,7 @@ private:
 		}
 
 	};
+
 
 	ULL pieceKeys[2][6][64];
 	MoveScore evaldMove;

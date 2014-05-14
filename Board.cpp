@@ -1397,6 +1397,11 @@ void Board::setDependences(Piece *piece) {
 	}
 }
 
+
+std::pair <int,int> Board::getOpeningMove() {
+	return std::pair<int, int>(0, 0);
+}
+
 /* Piece square tables initialisation*/
 
 const short int Board::pieceSquareTables[7][64] = {

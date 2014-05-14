@@ -25,7 +25,7 @@ private:
 	PIECE_COLOR colorToMove;
 	int evals;
 	int quiescence;
-	bool sorted;
+	bool sorted, openings = true;
 	std::string tok(std::string s, std::string delim);
 	Command currentCommand;
 	Color color;
