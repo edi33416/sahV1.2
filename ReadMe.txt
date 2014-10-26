@@ -1,16 +1,10 @@
-Nume echipa: Deeper Blue
+Team name: Deeper Blue
 
-Membrii:
+Team members:
    
     Ghiorghe Mihaita
     Leotescu George
     Staniloiu Constantin Eduard
-
-Detalii implementare: 
-
-    #   Reprezentarea tablei interne se face cu ajutorul BITBOARD-urilor
-    #   Toate piesele de joc efectueaza miscari legale pana la epuizarea acestora, sau pana cand se realizeaza "SAH MAT"
-    #	Miscarile efectuate au la baza implementarea unui algoritm minimax (negamax), cu o adancime curenta 2
-    #   Implementarea tuturor comenzilor necesare etapei
-
-Timp alocat: 40h
+    
+    This was a school project with equal contribution from all three members.
+    The number of lines commited by each member is irrelevant as all the code was designed and implemented together.
